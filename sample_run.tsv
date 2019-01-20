@@ -1,0 +1,7 @@
+## Type column is required for somatic analysis
+## File merging is based on ID column
+## Path to fastq files should be absolute paths and independent from working directory
+
+Read1	Read2	Lane	ID	Platform	Library	Type
+readsRaw/62361187_S20_R1_001.fastq	readsRaw/62361187_S20_R2_001.fastq	Lane1	S62361187	Illumina	Lib1	Normal
+readsRaw/62361187_S44_R1_001.fastq	readsRaw/62361187_S44_R2_001.fastq	Lane2	S62361187	Illumina	Lib2	Tumor
