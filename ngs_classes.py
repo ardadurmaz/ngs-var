@@ -27,7 +27,6 @@ class ngsInputs:
 		self.strelkabin = ""
 		self.mantabin = ""
 		self.cnvkit = ""
-		self.picard = ""
 		
 		
 		## Arguments ##
