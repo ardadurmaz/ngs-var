@@ -111,8 +111,6 @@ def check_inputs(inputs):
 	## Check Aligner ##
     if inputs.aligner == 'BWA':
         if not(os.path.exists(inputs.bwa)): raise ngs_classes.ngsExcept("[ERROR:BWA] Not Available")
-    elif inputs.aligner == 'BOWTIE2':
-        if not(os.path.exists(inputs.bowtie2)): raise ngs_classes.ngsExcept("[ERROR:BOWTIE2] Not Available")
     else:
         raise ngs_classes.ngsExcept("[ERROR:ALIGNER] Name of the aligner does not match available tools")
 
@@ -181,14 +179,6 @@ def parse_config(config_file, inputs):
 					inputs.sambamba = val
 					if inputs.verbose: print("[INFO] Parsed sambamba resource")
 					config_count = config_count + 1
-				elif key == 'BOWTIE2':
-					inputs.bowtie2 = val
-					if inputs.verbose: print("[INFO] Parsed bowtie2 resource")
-					config_count = config_count + 1
-				elif key == 'BOWTIE2BUILD':
-					inputs.bowtie2build = val
-					if inputs.verbose: print("[INFO] Parsed bowtie2build resource")
-					config_count = config_count + 1
 				elif key == 'BWA':
 					inputs.bwa = val
 					if inputs.verbose: print("[INFO] Parsed bwa resource")
@@ -244,7 +234,7 @@ def parse_config(config_file, inputs):
 def get_inputs(inputs):
 
 	## Get Arguments ##
-	parser = argparse.ArgumentParser(prog='NGS',description="Theo NGS")
+	parser = argparse.ArgumentParser(prog='NGS',description="NGS Pipeline")
 	
 	parser.add_argument('--dir',default='NGS_WD',help='Path to working directory')
 	parser.add_argument('--config',default='ngs.config',help="Configuration file")
@@ -260,7 +250,7 @@ def get_inputs(inputs):
 	
 	parser.add_argument('--in_file',default='None',required=True,help='Targets file containing sample ids and associated fastq files')
 	parser.add_argument('--trimmer',default='cutadapt',required=False,help='Name of the trimmer <cutadapt|fastp|skewer>')
-	parser.add_argument('--aligner',default='bwa',help='Name of the aligner <bowtie2|bwa>')
+	parser.add_argument('--aligner',default='bwa',help='Name of the aligner <bwa>')
 	parser.add_argument('--workflow',default='germlinesnvindel',help='Type of analysis to run <GermlineSNVIndel|SomaticSNVIndel>')
 	parser.add_argument('--tool',default='HaplotypeCaller',help='Name of the caller <HaplotypeCaller|Strelka2|MuTect2>')
 	
@@ -330,7 +320,7 @@ def prep_wd(inputs):
 
 
 if __name__ == '__main__':
-
+	
 	print("\n\n *** NGS Analysis ***\n\n")
 	print("[INFO:MAN] Create directories: readsTrimmed, readsAligned, bamProcessed, bamMerged, recalib, bamCalib\n\n")
 
@@ -429,7 +419,7 @@ if __name__ == '__main__':
 				s._bamCalibNormal = s._bamNormal
 
 	if inputs.verbose: print("[INFO] Preprocessing done.")
-
+	
 	## Workflow ##
 	if(inputs.workflow == "GERMLINESNVINDEL"):
 		
