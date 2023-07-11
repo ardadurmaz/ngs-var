@@ -67,8 +67,6 @@ def ngs_mutect(inputs, targets_data_processed):
 	return 0
 
 
-
-
 def ngs_strelka_somatic(inputs, targets_data_processed):
 	
 	print("\n<---> Strelka2 Somatic Workflow <--->\n")
@@ -113,7 +111,7 @@ def ngs_strelka_somatic(inputs, targets_data_processed):
 			except OSError:
 				raise ngs_classes.ngsExcept("[ERROR] Failed to create directory %s" % (s._mantaWD))
 
-		if(os.path.exists(tumorFile) and os.path.exists(normalFile)):
+		if(os.path.exists(tumorFile) and os.path.exists(normalFile)): #remove bowtie2, remove AddOrReplaceReadGroups, check single sample vs multi sample strelka alignment
 			if inputs.verbose: print("[INFO] Temporary tumor and normal bam files found for sample %s, skipping." % (s._id))
 		else:
 			if inputs.verbose:
@@ -133,14 +131,14 @@ def ngs_strelka_somatic(inputs, targets_data_processed):
 		if inputs.exome:
 			if inputs.verbose:
 				if not(inputs.cbed is None):
-					print("[INFO:COMMAND] python %s --normalBam %s --tumorBam %s --exome --referenceFasta %s --runDir %s --callRegions %s" % (mantaRun,
+					print("[INFO:COMMAND] python2.7 %s --normalBam %s --tumorBam %s --exome --referenceFasta %s --runDir %s --callRegions %s" % (mantaRun,
 																																			  normalFile,
 																																			  tumorFile,
 																																			  inputs.reference,
 																																			  s._mantaWD,
 																																			  inputs.cbed))
 				else:
-					print("[INFO:COMMAND] python %s --normalBam %s --tumorBam %s --exome --referenceFasta %s --runDir %s" % (mantaRun,
+					print("[INFO:COMMAND] python2.7 %s --normalBam %s --tumorBam %s --exome --referenceFasta %s --runDir %s" % (mantaRun,
 																															 normalFile,
 																															 tumorFile,
 																															 inputs.reference,
@@ -148,7 +146,7 @@ def ngs_strelka_somatic(inputs, targets_data_processed):
 
 			if not inputs.dry:
 				if not(inputs.cbed is None):
-					ret_val = os.system("python %s --normalBam %s --tumorBam %s --exome --referenceFasta %s --runDir %s --callRegions %s" % (mantaRun,
+					ret_val = os.system("python2.7 %s --normalBam %s --tumorBam %s --exome --referenceFasta %s --runDir %s --callRegions %s" % (mantaRun,
 																																			 normalFile,
 																																			 tumorFile,
 																																			 inputs.reference,
@@ -156,7 +154,7 @@ def ngs_strelka_somatic(inputs, targets_data_processed):
 																																			 inputs.cbed))
 					if(ret_val >> 8 != 0): raise ngs_classes.ngsExcept("[ERROR] Failed to run manta workflow for files %s %s" % (normalFile, tumorFile))
 				else:
-					ret_val = os.system("python %s --normalBam %s --tumorBam %s --exome --referenceFasta %s --runDir %s" % (mantaRun,
+					ret_val = os.system("python2.7 %s --normalBam %s --tumorBam %s --exome --referenceFasta %s --runDir %s" % (mantaRun,
 																															normalFile,
 																															tumorFile,
 																															inputs.reference,
@@ -165,14 +163,14 @@ def ngs_strelka_somatic(inputs, targets_data_processed):
 		else:
 			if inputs.verbose:
 				if not(inputs.cbed is None):
-					print("[INFO:COMMAND] python %s --normalBam %s --tumorBam %s --referenceFasta %s --runDir %s --callRegions %s" % (mantaRun,
+					print("[INFO:COMMAND] python2.7 %s --normalBam %s --tumorBam %s --referenceFasta %s --runDir %s --callRegions %s" % (mantaRun,
 																																	  normalFile,
 																																	  tumorFile,
 																																	  inputs.reference,
 																																	  s._mantaWD,
 																																	  inputs.cbed))
 				else:
-					print("[INFO:COMMAND] python %s --normalBam %s --tumorBam %s --referenceFasta %s --runDir %s" % (mantaRun,
+					print("[INFO:COMMAND] python2.7 %s --normalBam %s --tumorBam %s --referenceFasta %s --runDir %s" % (mantaRun,
 																													 normalFile,
 																													 tumorFile,
 																													 inputs.reference,
@@ -180,7 +178,7 @@ def ngs_strelka_somatic(inputs, targets_data_processed):
 
 			if not inputs.dry:
 				if not(inputs.cbed is None):
-					ret_val = os.system("python %s --normalBam %s --tumorBam %s --referenceFasta %s --runDir %s --callRegions %s" % (mantaRun,
+					ret_val = os.system("python2.7 %s --normalBam %s --tumorBam %s --referenceFasta %s --runDir %s --callRegions %s" % (mantaRun,
 																																	 normalFile,
 																																	 tumorFile,
 																																	 inputs.reference,
@@ -188,7 +186,7 @@ def ngs_strelka_somatic(inputs, targets_data_processed):
 																																	 inputs.cbed))
 					if(ret_val >> 8 != 0): raise ngs_classes.ngsExcept("[ERROR] Failed to run manta workflow for files %s %s" % (normalFile,tumorFile))
 				else:
-					ret_val = os.system("python %s --normalBam %s --tumorBam %s --referenceFasta %s --runDir %s" % (mantaRun,
+					ret_val = os.system("python2.7 %s --normalBam %s --tumorBam %s --referenceFasta %s --runDir %s" % (mantaRun,
 																													normalFile,
 																													tumorFile,
 																													inputs.reference,
@@ -196,10 +194,10 @@ def ngs_strelka_somatic(inputs, targets_data_processed):
 					if(ret_val >> 8 != 0): raise ngs_classes.ngsExcept("[ERROR] Failed to run manta workflow for files %s %s" % (normalFile,tumorFile))
 		## Run ##			
 		if inputs.verbose:
-			print("[INFO:COMMAND] python %s -m local -j %d" % (os.path.abspath(s._mantaWD + '/runWorkflow.py'),inputs.threads))
+			print("[INFO:COMMAND] python2.7 %s -m local -j %d" % (os.path.abspath(s._mantaWD + '/runWorkflow.py'),inputs.threads))
 			
 		if not inputs.dry:
-			ret_val = os.system("python %s -m local -j %d" % (os.path.abspath(s._mantaWD + '/runWorkflow.py'),inputs.threads))
+			ret_val = os.system("python2.7 %s -m local -j %d" % (os.path.abspath(s._mantaWD + '/runWorkflow.py'),inputs.threads))
 			if(ret_val >> 8 != 0): raise ngs_classes.ngsExcept("[ERROR] Failed to execute Manta workflow script")
 			
 	
@@ -226,7 +224,7 @@ def ngs_strelka_somatic(inputs, targets_data_processed):
 		if inputs.exome:
 			if inputs.verbose:
 				if not(inputs.cbed is None):
-					print("[INFO:COMMAND] python %s --normalBam %s --tumorBam %s --referenceFasta %s --indelCandidates %s --exome --callRegions %s --runDir %s" % (strelkaRun,
+					print("[INFO:COMMAND] python2.7 %s --normalBam %s --tumorBam %s --referenceFasta %s --indelCandidates %s --exome --callRegions %s --runDir %s" % (strelkaRun,
 																																								   normalFile,
 																																								   tumorFile,
 																																								   inputs.reference,
@@ -234,7 +232,7 @@ def ngs_strelka_somatic(inputs, targets_data_processed):
 																																								   inputs.cbed,
 																																								   s._strelkaWD))
 				else:
-					print("[INFO:COMMAND] python %s --normalBam %s --tumorBam %s --referenceFasta %s --indelCandidates %s --exome --runDir %s" % (strelkaRun,
+					print("[INFO:COMMAND] python2.7 %s --normalBam %s --tumorBam %s --referenceFasta %s --indelCandidates %s --exome --runDir %s" % (strelkaRun,
 																																				  normalFile,
 																																				  tumorFile,
 																																				  inputs.reference,
@@ -242,7 +240,7 @@ def ngs_strelka_somatic(inputs, targets_data_processed):
 																																				  s._strelkaWD))
 			if not inputs.dry:
 				if not(inputs.cbed is None):
-					ret_val = os.system("python %s --normalBam %s --tumorBam %s --referenceFasta %s --indelCandidates %s --exome --callRegions %s --runDir %s" % (strelkaRun,
+					ret_val = os.system("python2.7 %s --normalBam %s --tumorBam %s --referenceFasta %s --indelCandidates %s --exome --callRegions %s --runDir %s" % (strelkaRun,
 																																								  normalFile,
 																																								  tumorFile,
 																																								  inputs.reference,
@@ -251,7 +249,7 @@ def ngs_strelka_somatic(inputs, targets_data_processed):
 																																								  s._strelkaWD))
 					if(ret_val >> 8 != 0): raise ngs_classes.ngsExcept("[ERROR] Failed to run strelka workflow for files %s %s" % (normalFile,tumorFile))
 				else:
-					ret_val = os.system("python %s --normalBam %s --tumorBam %s --referenceFasta %s --indelCandidates %s --exome --runDir %s" % (strelkaRun,
+					ret_val = os.system("python2.7 %s --normalBam %s --tumorBam %s --referenceFasta %s --indelCandidates %s --exome --runDir %s" % (strelkaRun,
 																																				 normalFile,
 																																				 tumorFile,
 																																				 inputs.reference,
@@ -261,7 +259,7 @@ def ngs_strelka_somatic(inputs, targets_data_processed):
 		else:
 			if inputs.verbose:
 				if not(inputs.cbed is None):
-					print("[INFO:COMMAND] python %s --normalBam %s --tumorBam %s --referenceFasta %s --indelCandidates %s --callRegions %s --runDir %s" % (strelkaRun,
+					print("[INFO:COMMAND] python2.7 %s --normalBam %s --tumorBam %s --referenceFasta %s --indelCandidates %s --callRegions %s --runDir %s" % (strelkaRun,
 																																						   normalFile,
 																																						   tumorFile,
 																																						   inputs.reference,
@@ -269,7 +267,7 @@ def ngs_strelka_somatic(inputs, targets_data_processed):
 																																						   inputs.cbed,
 																																						   s._strelkaWD))
 				else:
-					print("[INFO:COMMAND] python %s --normalBam %s --tumorBam %s --referenceFasta %s --indelCandidates %s --runDir %s" % (strelkaRun,
+					print("[INFO:COMMAND] python2.7 %s --normalBam %s --tumorBam %s --referenceFasta %s --indelCandidates %s --runDir %s" % (strelkaRun,
 																																		  normalFile,
 																																		  tumorFile,
 																																		  inputs.reference,
@@ -277,7 +275,7 @@ def ngs_strelka_somatic(inputs, targets_data_processed):
 																																		  s._strelkaWD))
 			if not inputs.dry:
 				if not(inputs.cbed is None):
-					ret_val = os.system("python %s --normalBam %s --tumorBam %s --referenceFasta %s --indelCandidates %s --callRegions %s --runDir %s" % (strelkaRun,
+					ret_val = os.system("python2.7 %s --normalBam %s --tumorBam %s --referenceFasta %s --indelCandidates %s --callRegions %s --runDir %s" % (strelkaRun,
 																																						  normalFile,
 																																						  tumorFile,
 																																						  inputs.reference,
@@ -286,7 +284,7 @@ def ngs_strelka_somatic(inputs, targets_data_processed):
 																																						  s._strelkaWD))
 					if(ret_val >> 8 != 0): raise ngs_classes.ngsExcept("[ERROR] Failed to run strelka workflow for files %s %s" % (normalFile,tumorFile))
 				else:
-					ret_val = os.system("python %s --normalBam %s --tumorBam %s --referenceFasta %s --indelCandidates %s --runDir %s" % (strelkaRun,
+					ret_val = os.system("python2.7 %s --normalBam %s --tumorBam %s --referenceFasta %s --indelCandidates %s --runDir %s" % (strelkaRun,
 																																		 normalFile,
 																																		 tumorFile,
 																																		 inputs.reference,
@@ -295,10 +293,10 @@ def ngs_strelka_somatic(inputs, targets_data_processed):
 					if(ret_val >> 8 != 0): raise ngs_classes.ngsExcept("[ERROR] Failed to run strelka workflow for files %s %s" % (normalFile,tumorFile))
 		## Run ##
 		if inputs.verbose:
-			print("[INFO:COMMAND] python %s -m local -j %d" % (os.path.abspath(s._strelkaWD + '/runWorkflow.py'),inputs.threads))
+			print("[INFO:COMMAND] python2.7 %s -m local -j %d" % (os.path.abspath(s._strelkaWD + '/runWorkflow.py'),inputs.threads))
 			
 		if not inputs.dry:
-			ret_val = os.system("python %s -m local -j %d" % (os.path.abspath(s._strelkaWD + '/runWorkflow.py'),inputs.threads))
+			ret_val = os.system("python2.7 %s -m local -j %d" % (os.path.abspath(s._strelkaWD + '/runWorkflow.py'),inputs.threads))
 			if(ret_val >> 8 != 0): raise ngs_classes.ngsExcept("[ERROR] Failed to execute Strelka workflow script")
 			
 			
@@ -317,7 +315,6 @@ def ngs_cnvkit_somatic(inputs, targets_data_processed):
 			os.mkdir(runDir)
 		except OSError:
 			raise ngs_classes.ngsExcept("[ERROR] Failed to create directory %s" % (runDir))
-
 	
 	## Index ##
 	for s in targets_data_processed:
