@@ -14,8 +14,6 @@ class ngsInputs:
 	
 	def __init__(self):
 		## Resources ##
-		self.bowtie2 = ""
-		self.bowtie2build = ""
 		self.bwa = ""
 		self.cutadapt = ""
 		self.afterqc = ""
