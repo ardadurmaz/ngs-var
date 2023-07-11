@@ -81,8 +81,6 @@ def read_config(args):
     inputs.gatk = local_data["GATK"]
     inputs.samtools = local_data["SAMTOOLS"]
     inputs.bcftools = local_data["BCFTOOLS"]
-    inputs.bowtie2 = local_data["BOWTIE2"]
-    inputs.bowtie2build = local_data["BOWTIE2BUILD"]
     inputs.bwa = local_data["BWA"]
     inputs.fastp = local_data["FASTP"]
     inputs.cutadapt = local_data["CUTADAPT"]
@@ -92,10 +90,7 @@ def read_config(args):
     inputs.strelkabin = local_data["STRELKABIN"]
     inputs.mantabin = local_data["MANTABIN"]
 
-    if re.search('bowtie2', str.lower(args.aligner)):
-        inputs.aligner = "BOWTIE2"
-        inputs.indexer = "BOWTIE2BUILD"
-    elif re.search('bwa', str.lower(args.aligner)):
+    if re.search('bwa', str.lower(args.aligner)):
         inputs.aligner = "BWA"
         inputs.indexer = "BWABUILD"
 
@@ -141,7 +136,7 @@ def get_inputs():
     parser_germline.add_argument('--config', default=None, required=True, help='Path to config file')
     parser_germline.add_argument('--tool', default='Strelka2', required=True, help='Name of the caller <HaplotypeCaller|Strelka2>')
     parser_germline.add_argument('--trimmer', default=None, required=False, help='Name of the trimmer <cutadapt|afterqc|skewer>')
-    parser_germline.add_argument('--aligner', default='bwa', required=True, help='Name of the aligner <bowtie2|bwa>')
+    parser_germline.add_argument('--aligner', default='bwa', required=True, help='Name of the aligner <bwa>')
     parser_germline.add_argument('--dir', default='NGS_WD', required=True, help='Working Directory')
     parser_germline.add_argument('--in_file', default=None, required=True, help='Targets file containing sample ids and associated fastq files')
     parser_germline.add_argument('--verbose', action="store_true", help='Verbosity')
@@ -158,7 +153,7 @@ def get_inputs():
     parser_somatic.add_argument('--config', default=None, required=True, help='Path to config file')
     parser_somatic.add_argument('--tool', default='Strelka2', required=True, help='Name of the caller <MuTect1|Strelka2>')
     parser_somatic.add_argument('--trimmer', default=None, required=False, help='Name of the trimmer <cutadapt|afterqc|skewer> ')
-    parser_somatic.add_argument('--aligner', default='bwa', required=True, help='Name of the aligner <bowtie2|bwa>')
+    parser_somatic.add_argument('--aligner', default='bwa', required=True, help='Name of the aligner <bwa>')
     parser_somatic.add_argument('--in_file', default=None, required=True, help='Targets file containing sample ids and associated fastq files')
     parser_somatic.add_argument('--verbose', action="store_true", help='Verbosity')
     parser_somatic.add_argument('--dir', default='NGS_WD', required=True, help='Working directory')
@@ -173,7 +168,7 @@ def get_inputs():
     parser_expr = subparsers.add_parser('ExpressionQuantification', help='Expression Quantification')
     parser_expr.add_argument('--config', default=None, required=True, help='Path to config file')
     parser_expr.add_argument('--tool', default=None, required=True, help='Name of the quantifier <RSEM|featureCounts>')
-    parser_expr.add_argument('--aligner', default=None, required=True, help='Name of the aligner <bowtie2|bwa>|STAR')
+    parser_expr.add_argument('--aligner', default=None, required=True, help='Name of the aligner <bwa>|STAR')
     parser_expr.add_argument('--in_file', default=None, required=True, help='Targets file containing sample ids and associated fastq files')
     parser_expr.add_argument('--dir', default=None, required=True, help='Working directory')
     parser_expr.add_argument('--trimmer', default=None, required=False, help='Name of the trimmer tool <cutadapt|afterqc|skewer>')
@@ -296,21 +291,7 @@ def prep_wd(path_wd, workflow_type, inputs):
 
 
 def ngs_index(inputs):
-    if re.search('bowtie2build', str.lower(inputs.indexer)):
-        if len(glob.glob(os.path.abspath(inputs.dir + '/indices/ref_indices_bowtie2*'))) > 0:
-            print("    *** indices found, skipping..")
-        else:
-            if inputs.verbose:
-                print("Running: %s --threads %d %s %s" % (inputs.bowtie2build,
-                                                          inputs.threads,
-                                                          inputs.reference,
-                                                          os.path.abspath(inputs.dir + '/indices/ref_indices_bowtie2')))
-            if not inputs.dry:
-                os.system("%s --threads %d %s %s" % (inputs.bowtie2build,
-                                                     inputs.threads,
-                                                     inputs.reference,
-                                                     os.path.abspath(inputs.dir + '/indices/ref_indices_bowtie2')))
-    elif re.search("bwa", str.lower(inputs.indexer)):
+    if re.search("bwa", str.lower(inputs.indexer)):
         if len(glob.glob(os.path.abspath(inputs.reference + '.bwt'))) > 0:
             print("    *** indices found, skipping..")
         else:
@@ -439,44 +420,7 @@ def ngs_trim(inputs, targets_data):
 
 
 def ngs_align(inputs, targets_data):
-    if re.search('bowtie2', str.lower(inputs.aligner)):
-        for r in targets_data:
-            if os.path.exists(
-                    os.path.abspath(
-                        inputs.dir + '/readsAligned/Aligned_' + r._id + '_' + r._lib + '_' + r._lane + '_bowtie2.sam')):
-                print("    *** aligned reads found, skipping...")
-                r._aligned = os.path.abspath(
-                    inputs.dir + '/readsAligned/Aligned_' + r._id + '_' + r._lib + '_' + r._lane + '_bowtie2.sam')
-            else:
-                if inputs.verbose:
-                    print("Running: %s --threads %d -x %s --quiet --phred33 --no-mixed --no-unal "
-                          "--very-sensitive-local -1 %s -2 %s -S %s --rg-id %s --rg %s --rg %s --rg %s" % (
-                              inputs.bowtie2,
-                              inputs.threads,
-                              os.path.abspath(inputs.dir + '/indices/ref_indices_bowtie2'),
-                              r._trimmedR1, r._trimmedR2,
-                              os.path.abspath(inputs.dir + '/readsAligned/Aligned_' +
-                                              r._id + '_' + r._lib + '_' + r._lane + '_bowtie2.sam'),
-                              r._id + '_' + r._lib + '_' + r._lane,
-                              'SM:' + r._id,
-                              'PL:' + str.upper(r._plat),
-                              'LB:' + r._lib))
-                if not inputs.dry:
-                    os.system("%s --threads %d -x %s --quiet --phred33 --no-mixed --no-unal "
-                              "--very-sensitive-local -1 %s -2 %s -S %s --rg-id %s --rg %s --rg %s --rg %s" % (
-                                  inputs.bowtie2,
-                                  inputs.threads,
-                                  os.path.abspath(inputs.dir + '/indices/ref_indices'),
-                                  r._trimmedR1, r._trimmedR2,
-                                  os.path.abspath(inputs.dir + '/readsAligned/Aligned_' +
-                                                  r._id + '_' + r._lib + '_' + r._lane + '_bowtie2.sam'),
-                                  r._id + '_' + r._lib + '_' + r._lane,
-                                  'SM:' + r._id,
-                                  'PL:' + str.upper(r._plat),
-                                  'LB:' + r._lib))
-                r._aligned = os.path.abspath(
-                    inputs.dir + '/readsAligned/Aligned_' + r._id + '_' + r._lib + '_' + r._lane + '_bowtie2.sam')
-    elif re.search('bwa', str.lower(inputs.aligner)):
+    if re.search('bwa', str.lower(inputs.aligner)):
         for r in targets_data:
             if os.path.exists(
                     os.path.abspath(
