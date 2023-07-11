@@ -111,7 +111,7 @@ def ngs_strelka_somatic(inputs, targets_data_processed):
 			except OSError:
 				raise ngs_classes.ngsExcept("[ERROR] Failed to create directory %s" % (s._mantaWD))
 
-		if(os.path.exists(tumorFile) and os.path.exists(normalFile)): #remove bowtie2, remove AddOrReplaceReadGroups, check single sample vs multi sample strelka alignment
+		if(os.path.exists(tumorFile) and os.path.exists(normalFile)):
 			if inputs.verbose: print("[INFO] Temporary tumor and normal bam files found for sample %s, skipping." % (s._id))
 		else:
 			if inputs.verbose:
