@@ -7,17 +7,7 @@ import ngs_classes
 
 
 def ngs_index(inputs):
-	if re.search('bowtie2', str.lower(inputs.aligner)):
-		if(len(glob.glob(os.path.abspath(inputs.dir + '/indices/ref_indices_bowtie2*'))) > 0):
-			print("[INFO] Indices found, skipping.")
-		else:
-			idx_Name = os.path.abspath(inputs.dir + '/indices/ref_indices_bowtie2')
-			if inputs.verbose:
-				print("[INFO:COMMAND] %s --threads %d %s %s" % (inputs.bowtie2build,inputs.threads,inputs.reference,idx_Name))
-			if not inputs.dry:
-				ret_val = os.system("%s --threads %d %s %s" % (inputs.bowtie2build,inputs.threads,inputs.reference,idx_Name)) ## 0 return code for success
-				if(ret_val >> 8 != 0): raise ngs_classes.ngsExcept("[ERROR:BOWTIE2] Failed to create fasta index")
-	elif re.search("bwa", str.lower(inputs.aligner)):
+	if re.search("bwa", str.lower(inputs.aligner)):
 		if(len(glob.glob(os.path.abspath(inputs.reference + '.bwt'))) > 0):
 			print("[INFO] Indices found, skipping.")
 		else:
@@ -96,28 +86,7 @@ def ngs_trim(inputs, targets_data):
 	return True
 
 def ngs_align(inputs, targets_data):
-	
-	if re.search('bowtie2', str.lower(inputs.aligner)):
-		for r in targets_data:
-			aligned_Name = os.path.abspath(inputs.dir + '/readsAligned/Aligned_' + r._id + '_' + r._lib + '_' + r._lane + '.sam')
-			if(os.path.exists(aligned_Name)):
-				print("[INFO] Aligned reads found, skipping.")
-			else:
-				if inputs.verbose:
-					print("[INFO:COMMAND] %s --threads %d -x %s --quiet --phred33 --no-mixed --no-unal "\
-					"--very-sensitive-local -1 %s -2 %s -S %s --rg-id %s --rg %s --rg %s --rg %s" % (inputs.bowtie2,inputs.threads,os.path.abspath(inputs.dir + '/indices/ref_indices_bowtie2'),
-					r._trimmedR1,r._trimmedR2,aligned_Name,
-					r._id + '_' + r._lib + '_' + r._lane,
-					'SM:' + r._id,'PL:' + str.upper(r._plat),'LB:' + r._lib))
-				if not inputs.dry:
-					ret_val = os.system("%s --threads %d -x %s --quiet --phred33 --no-mixed --no-unal "\
-					"--very-sensitive-local -1 %s -2 %s -S %s --rg-id %s --rg %s --rg %s --rg %s" % (inputs.bowtie2,inputs.threads,os.path.abspath(inputs.dir + '/indices/ref_indices_bowtie2'),
-					r._trimmedR1,r._trimmedR2,aligned_Name,
-					r._id + '_' + r._lib + '_' + r._lane,'SM:' + r._id,'PL:' + str.upper(r._plat),'LB:' + r._lib)) ## 0 return code for success
-					if(ret_val >> 8 != 0): raise ngs_classes.ngsExcept("[ERROR:BOWTIE2] Failed to align reads %s %s" % (r._trimmedR1, r._trimmedR2))
-			r._aligned = aligned_Name
-	
-	elif re.search('bwa', str.lower(inputs.aligner)):
+	if re.search('bwa', str.lower(inputs.aligner)):
 		for r in targets_data:
 			aligned_Name = os.path.abspath(inputs.dir + '/readsAligned/Aligned_' + r._id + '_' + r._lib + '_' + r._lane + '.bam')
 			if(os.path.exists(aligned_Name)):
