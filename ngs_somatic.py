@@ -22,20 +22,6 @@ def ngs_mutect(inputs, targets_data_processed):
 	for s in targets_data_processed:
 		outFile = runDir + '/Sample_' + s._id + '.vcf'
 
-		if(os.path.exists(s._bamCalibTumor) and os.path.exists(s._bamCalibNormal)):
-			if inputs.verbose: print("[INFO] Temporary tumor and normal bam files found for sample %s, skipping." % (s._id))
-		else:
-			if(len(glob.glob(os.path.abspath(s._bamCalibTumor + '.bai'))) > 0):
-				print("[INFO] Indices found, skipping.")
-			else:
-				if inputs.verbose: print('[INFO:COMMAND] %s index -t %d %s' % (inputs.sambamba, inputs.threads, s._bamCalibTumor))
-				if not inputs.dry: os.system('%s index -t %d %s' % (inputs.sambamba, inputs.threads, s._bamCalibTumor))
-			if(len(glob.glob(os.path.abspath(s._bamCalibNormal + '.bai'))) > 0):
-				print("[INFO] Indices found, skipping.")
-			else:
-				if inputs.verbose: print('[INFO:COMMAND] %s index -t %d %s' % (inputs.sambamba, inputs.threads, s._bamCalibNormal))
-				if not inputs.dry: os.system('%s index -t %d %s' % (inputs.sambamba, inputs.threads, s._bamCalibNormal))
-		
 		if(os.path.exists(outFile)):
 			if inputs.verbose: print("[INFO] MuTect2 output file found for sample %s, skipping." % (s._id))
 		else:
@@ -109,20 +95,6 @@ def ngs_strelka_somatic(inputs, targets_data_processed): #remove bowtie2, remove
 				os.mkdir(s._mantaWD)
 			except OSError:
 				raise ngs_classes.ngsExcept("[ERROR] Failed to create directory %s" % (s._mantaWD))
-
-		if(os.path.exists(s._bamCalibTumor) and os.path.exists(s._bamCalibNormal)):
-			if inputs.verbose: print("[INFO] Temporary tumor and normal bam files found for sample %s, skipping." % (s._id))
-		else:
-			if(len(glob.glob(os.path.abspath(s._bamCalibTumor + '.bai'))) > 0):
-				print("[INFO] Indices found, skipping.")
-			else:
-				if inputs.verbose: print('[INFO:COMMAND] %s index -t %d %s' % (inputs.sambamba, inputs.threads, s._bamCalibTumor))
-				if not inputs.dry: os.system('%s index -t %d %s' % (inputs.sambamba, inputs.threads, s._bamCalibTumor))
-			if(len(glob.glob(os.path.abspath(s._bamCalibNormal + '.bai'))) > 0):
-				print("[INFO] Indices found, skipping.")
-			else:
-				if inputs.verbose: print('[INFO:COMMAND] %s index -t %d %s' % (inputs.sambamba, inputs.threads, s._bamCalibNormal))
-				if not inputs.dry: os.system('%s index -t %d %s' % (inputs.sambamba, inputs.threads, s._bamCalibNormal))
 
 		if inputs.exome:
 			if inputs.verbose:
@@ -289,7 +261,7 @@ def ngs_strelka_somatic(inputs, targets_data_processed): #remove bowtie2, remove
 		if inputs.verbose:
 			print("[INFO:COMMAND] python2.7 %s -m local -j %d" % (os.path.abspath(s._strelkaWD + '/runWorkflow.py'),inputs.threads))
 			
-		if not inputs.dry:
+		if not inputs.dry: #ERROR LINE
 			ret_val = os.system("python2.7 %s -m local -j %d" % (os.path.abspath(s._strelkaWD + '/runWorkflow.py'),inputs.threads))
 			if(ret_val >> 8 != 0): raise ngs_classes.ngsExcept("[ERROR] Failed to execute Strelka workflow script")
 			
