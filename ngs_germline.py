@@ -21,8 +21,11 @@ def ngs_haplotypecaller(inputs, targets_data_processed):
 	
 	## Index ##
 	for s in targets_data_processed:
-		if inputs.verbose: print('[INFO:COMMAND] %s index -t %d %s' % (inputs.sambamba, inputs.threads, s._bamCalib))
-		if not inputs.dry: os.system('%s index -t %d %s' % (inputs.sambamba, inputs.threads, s._bamCalib))
+		if(len(glob.glob(os.path.abspath(s._bamCalib + '.bai'))) > 0):
+			print("[INFO] Indices found, skipping.")
+		else:
+			if inputs.verbose: print('[INFO:COMMAND] %s index -t %d %s' % (inputs.sambamba, inputs.threads, s._bamCalib))
+			if not inputs.dry: os.system('%s index -t %d %s' % (inputs.sambamba, inputs.threads, s._bamCalib))
 
 	for s in targets_data_processed:
 		outFile = runDir + f'/{s._id}.raw.snps.indels.vcf'
@@ -68,7 +71,7 @@ def ngs_haplotypecaller_combine(inputs, targets_data_processed):
 		if not inputs.dry:
 			ret_val = os.system("java -Xmx8g -jar %s CombineGVCFs -R %s --variant %s -O %s" % \
 		       (inputs.gatk, inputs.reference, inFile, outFile))
-			if(ret_val >> 8 != 0): raise ngs_classes.ngsExcept("[ERROR:CombineGVCFs] Failed")
+			if(ret_val >> 8 != 0): raise ngs_classes.ngsExcept("[ERROR:CombineGVCFs] Failed to combine GVCFs")
 
 	print("\n<---> Done <--->\n")
 	return 0
@@ -90,7 +93,7 @@ def ngs_haplotypecaller_genotype(inputs):
         if not inputs.dry:
             ret_val = os.system("java -Xmx8g -jar %s GenotypeGVCFs -R %s -V %s -O %s -A BaseQualityRankSumTest -A MappingQualityRankSumTest -A FisherStrand -A QualByDepth -A ReadPosRankSumTest -A RMSMappingQuality -A StrandOddsRatio -A DepthPerAlleleBySample -A Coverage -ip 100" % \
                 (inputs.gatk, inputs.reference, inFile, outFile))
-            if(ret_val >> 8 != 0): raise ngs_classes.ngsExcept("[ERROR:GenotypeGVCFs] Failed")
+            if(ret_val >> 8 != 0): raise ngs_classes.ngsExcept("[ERROR:GenotypeGVCFs] Failed to perform joint genotyping")
     print("\n<---> Done <--->\n")
     return 0
 
@@ -144,8 +147,11 @@ def ngs_strelka_germline(inputs, targets_data_processed):
 
 	## Index Bam Files ##
 	for s in targets_data_processed:
-		if inputs.verbose: print('[INFO:COMMAND] %s index -t %d %s' % (inputs.sambamba, inputs.threads, s._bamCalib))
-		if not inputs.dry: os.system('%s index -t %d %s' % (inputs.sambamba, inputs.threads, s._bamCalib))
+		if(len(glob.glob(os.path.abspath(s._bamCalib + '.bai'))) > 0):
+			print("[INFO] Indices found, skipping.")
+		else:
+			if inputs.verbose: print('[INFO:COMMAND] %s index -t %d %s' % (inputs.sambamba, inputs.threads, s._bamCalib))
+			if not inputs.dry: os.system('%s index -t %d %s' % (inputs.sambamba, inputs.threads, s._bamCalib))
 	
 	files = []
 	for s in targets_data_processed:
@@ -213,8 +219,11 @@ def ngs_cnvkit_germline(inputs, targets_data_processed):
 
 	## Index Bam Files ##
 	for s in targets_data_processed:
-		if inputs.verbose: print('[INFO:COMMAND] %s index -t %d %s' % (inputs.sambamba, inputs.threads, s._bamCalib))
-		if not inputs.dry: os.system('%s index -t %d %s' % (inputs.sambamba, inputs.threads, s._bamCalib))
+		if(len(glob.glob(os.path.abspath(s._bamCalib + '.bai'))) > 0):
+			print("[INFO] Indices found, skipping.")
+		else:
+			if inputs.verbose: print('[INFO:COMMAND] %s index -t %d %s' % (inputs.sambamba, inputs.threads, s._bamCalib))
+			if not inputs.dry: os.system('%s index -t %d %s' % (inputs.sambamba, inputs.threads, s._bamCalib))
 	
 	tumor_files = []
 	for s in targets_data_processed:
