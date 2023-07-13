@@ -196,13 +196,22 @@ def bqsr(inputs, targets_data_processed):
 	
 	for s in targets_data_processed:
 		if str.upper(inputs.workflow) == "SOMATICSNVINDEL":
-			if inputs.verbose: print("[INFO] %s index -t %d %s" % (inputs.sambamba,inputs.threads,s._bamTumor))
-			if not inputs.dry: os.system("%s index -t %d %s" % (inputs.sambamba,inputs.threads,s._bamTumor))
-			if inputs.verbose: print("[INFO] %s index -t %d %s" % (inputs.sambamba,inputs.threads,s._bamNormal))
-			if not inputs.dry: os.system("%s index -t %d %s" % (inputs.sambamba,inputs.threads,s._bamNormal))
+			if(len(glob.glob(os.path.abspath(s._bamTumor + '.bai'))) > 0):
+				print("[INFO] Indices found, skipping.")
+			else:
+				if inputs.verbose: print("[INFO] %s index -t %d %s" % (inputs.sambamba,inputs.threads,s._bamTumor))
+				if not inputs.dry: os.system("%s index -t %d %s" % (inputs.sambamba,inputs.threads,s._bamTumor))
+			if(len(glob.glob(os.path.abspath(s._bamNormal + '.bai'))) > 0):
+				print("[INFO] Indices found, skipping.")
+			else:
+				if inputs.verbose: print("[INFO] %s index -t %d %s" % (inputs.sambamba,inputs.threads,s._bamNormal))
+				if not inputs.dry: os.system("%s index -t %d %s" % (inputs.sambamba,inputs.threads,s._bamNormal))
 		elif str.upper(inputs.workflow) == "GERMLINESNVINDEL":
-			if inputs.verbose: print("[INFO] %s index -t %d %s" % (inputs.sambamba,inputs.threads,s._bam))
-			if not inputs.dry: os.system("%s index -t %d %s" % (inputs.sambamba,inputs.threads,s._bam))
+			if(len(glob.glob(os.path.abspath(s._bam + '.bai'))) > 0):
+				print("[INFO] Indices found, skipping.")
+			else:
+				if inputs.verbose: print("[INFO] %s index -t %d %s" % (inputs.sambamba,inputs.threads,s._bam))
+				if not inputs.dry: os.system("%s index -t %d %s" % (inputs.sambamba,inputs.threads,s._bam))
 			
 	## BQSR (Step 1) ##
 	for s in targets_data_processed:
