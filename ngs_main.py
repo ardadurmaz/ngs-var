@@ -8,13 +8,14 @@ import glob
 dir_path = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(dir_path)
 import ngs_classes, ngs_germline, ngs_somatic, ngs_preprocess
+from ngs_functions import print_log
 ######################################################
-
+	
 def ngs_clean(inputs):
 	
 	if not inputs.dry:
 		if inputs.upload:
-			if inputs.verbose: print("[INFO:UPLOAD] sudo aws s3 sync %s s3://rnaseq-bucket/%s" % (inputs.dir, inputs.title))
+			if inputs.verbose: print_log(inputs, "[INFO:UPLOAD] sudo aws s3 sync %s s3://rnaseq-bucket/%s" % (inputs.dir, inputs.title))
 			os.system("aws s3 sync %s s3://rnaseq-bucket/%s" % (inputs.dir, inputs.title))
 	return 0
 
@@ -44,14 +45,14 @@ def read_targets(inputs):
 						elif re.search('lib', str.lower(local[i])):
 							indx["Library"] = i
 						if re.search('type', str.lower(local[i])):
-							if(inputs.workflow == "GERMLINESNVINDEL" and inputs.verbose): print("[WARNING] Workflow type "\
+							if(inputs.workflow == "GERMLINESNVINDEL" and inputs.verbose): print_log(inputs, "[WARNING] Workflow type "\
 							"is GERMLINESNVINDEL but tumor/normal type column found (Using only Normal tags)")
 							indx["Type"] = i
 							_mixed = True
 					_header = False
 				else:
 					if len(list([x for x in local if re.search('^[^\s]+$', x)])) != len(indx):
-						print('[WARNING:FORMAT] %s' % ("\t".join(local)))
+						print_log(inputs, '[WARNING:FORMAT] %s' % ("\t".join(local)))
 					else:
 						if(str.upper(inputs.workflow) == "GERMLINESNVINDEL"):
 							if not(_mixed):
@@ -83,18 +84,18 @@ def read_targets(inputs):
 
 	if inputs.verbose:
 		for r in in_data:
-			print("\n    *** Run Info ***")
+			print_log(inputs, "\n    *** Run Info ***")
 			for arg, val in vars(r).items():
 				if val:
-					print("  [%s --> %s]" % (arg, val))
-		print("\n\n")    
+					print_log(inputs, "  [%s --> %s]" % (arg, val))
+		print_log(inputs, "\n\n")    
 
 	return in_data
 
 
 
 def check_inputs(inputs):
-    if inputs.verbose: print("[INFO] Checking provided arguments")
+    if inputs.verbose: print_log(inputs, "[INFO] Checking provided arguments")
 	
 	## Check Trimmer ##
     if inputs.trimmer == 'CUTADAPT':
@@ -146,10 +147,10 @@ def check_inputs(inputs):
     try:
         prep_wd(inputs)
     except ngs_classes.ngsExcept as err:
-        print(err.msg)
+        print_log(inputs, err.msg)
         raise ngs_classes.ngsExcept("[ERROR] Input Check Failed")
         
-    if inputs.verbose: print("[INFO] Done.")
+    if inputs.verbose: print_log(inputs, "[INFO] Done.")
     
     return 0
 
@@ -169,77 +170,77 @@ def parse_config(config_file, inputs):
 				val = match.group(2)
 				if key == 'REFERENCE':
 					inputs.reference = val
-					if inputs.verbose: print("[INFO] Parsed reference resource")
+					if inputs.verbose: print_log(inputs, "[INFO] Parsed reference resource")
 					config_count = config_count + 1
 				elif key == 'GATK':
 					inputs.gatk = val
-					if inputs.verbose: print("[INFO] Parsed gatk resource")
+					if inputs.verbose: print_log(inputs, "[INFO] Parsed gatk resource")
 					config_count = config_count + 1
 				elif key == 'SAMBAMBA':
 					inputs.sambamba = val
-					if inputs.verbose: print("[INFO] Parsed sambamba resource")
+					if inputs.verbose: print_log(inputs, "[INFO] Parsed sambamba resource")
 					config_count = config_count + 1
 				elif key == 'BWA':
 					inputs.bwa = val
-					if inputs.verbose: print("[INFO] Parsed bwa resource")
+					if inputs.verbose: print_log(inputs, "[INFO] Parsed bwa resource")
 					config_count = config_count + 1
 				elif key == 'SAMTOOLS':
 					inputs.samtools = val
-					if inputs.verbose: print("[INFO] Parsed samtools resource")
+					if inputs.verbose: print_log(inputs, "[INFO] Parsed samtools resource")
 					config_count = config_count + 1
 				elif key == 'FASTP':
 					inputs.fastp = val
-					if inputs.verbose: print("[INFO] Parsed fastp resource")
+					if inputs.verbose: print_log(inputs, "[INFO] Parsed fastp resource")
 					config_count = config_count + 1
 				elif key == 'CUTADAPT':
 					inputs.cutadapt = val
-					if inputs.verbose: print("[INFO] Parsed cutadapt resource")
+					if inputs.verbose: print_log(inputs, "[INFO] Parsed cutadapt resource")
 					config_count = config_count + 1
 				elif key == 'SKEWER':
 					inputs.skewer = val
-					if inputs.verbose: print("[INFO] Parsed skewer resource")
+					if inputs.verbose: print_log(inputs, "[INFO] Parsed skewer resource")
 					config_count = config_count + 1
 				elif key == 'AFTERQC':
 					inputs.afterqc = val
-					if inputs.verbose: print("[INFO] Parsed afterqc resource")
+					if inputs.verbose: print_log(inputs, "[INFO] Parsed afterqc resource")
 					config_count = config_count + 1
 				elif key == 'STRELKABIN':
 					inputs.strelkabin = val
-					if inputs.verbose: print("[INFO] Parsed strelkabin resource")
+					if inputs.verbose: print_log(inputs, "[INFO] Parsed strelkabin resource")
 					config_count = config_count + 1
 				elif key == 'MANTABIN':
 					inputs.mantabin = val
-					if inputs.verbose: print("[INFO] Parsed mantabin resource")
+					if inputs.verbose: print_log(inputs, "[INFO] Parsed mantabin resource")
 					config_count = config_count + 1
 				elif key == 'KNOWNSITES':
 					inputs.knownsites = val.split(",")
-					if inputs.verbose: print("[INFO] Parsed knownsites resource")
+					if inputs.verbose: print_log(inputs, "[INFO] Parsed knownsites resource")
 					config_count = config_count + 1
 				elif key == 'CNVKIT':
 					inputs.cnvkit = val
-					if inputs.verbose: print("[INFO] Parsed Cnvkit resource")
+					if inputs.verbose: print_log(inputs, "[INFO] Parsed Cnvkit resource")
 					config_count = config_count + 1
 				else:
-					if inputs.verbose: print(f"[WARNING] Unrecognized resource in configuration file: {key}")
+					if inputs.verbose: print_log(inputs, f"[WARNING] Unrecognized resource in configuration file: {key}")
 	finally:
 		fh.close()
 	
 	if(config_count > 0):
-		if inputs.verbose: print("[INFO] Processed %d value pairs in configuration file" % (config_count))
+		if inputs.verbose: print_log(inputs, "[INFO] Processed %d value pairs in configuration file" % (config_count))
 		return 0
 	else:
 		raise ngs_classes.ngsExcept("[ERROR] Failed to parse .config file")
-
 
 def get_inputs(inputs):
 
 	## Get Arguments ##
 	parser = argparse.ArgumentParser(prog='NGS',description="NGS Pipeline")
 	
-	parser.add_argument('--dir',default='NGS_WD',help='Path to working directory')
+	parser.add_argument('--dir',default='NGS_WD',help='Name of working directory')
 	parser.add_argument('--config',default='ngs.config',help="Configuration file")
 	parser.add_argument('--threads',default=4,type=int,help="Number of threads to use")
 	parser.add_argument('--title',default='NGS_Analysis',help='Title of the run')
+	parser.add_argument('--log',default="log.txt",help='Name of log file')
 	
 	parser.add_argument('--verbose',action="store_true",help='Verbosity')
 	parser.add_argument('--dry',action="store_true",help='Dry-Run')
@@ -256,12 +257,14 @@ def get_inputs(inputs):
 	
 	parser.add_argument('--bed',default=None,help='Bed file for regions')
 	parser.add_argument('--cbed',default=None,help='Bgzip compressed and tabix indexed bed file for regions')
+
 	args = parser.parse_args()
 	
 	## Collect Inputs ##
 	inputs.dir = os.path.abspath(args.dir)
 	inputs.threads = args.threads
 	inputs.title = args.title
+	inputs.log = args.log
 	inputs.bed = args.bed
 	inputs.cbed = args.cbed	
 	
@@ -278,27 +281,26 @@ def get_inputs(inputs):
 	inputs.workflow = str.upper(args.workflow)
 	inputs.tool = str.upper(args.tool)
 
-	
 	## Get Config Data ##
 	try:
 		parse_config(args.config, inputs)
 	except ngs_classes.ngsExcept as err:
-		print(err.msg)
+		print_log(inputs, err.msg)
 		raise ngs_classes.ngsExcept("[ERROR] Failed to parse inputs")
 
 	if inputs.verbose:
-		print("\n")
-		print("\/" * 40)
+		print_log(inputs, "\n")
+		print_log(inputs, "\/" * 40)
 
 		for key, val in vars(inputs).items():
 			if(key == 'knownsites'):
 				for site in val:
-					print("\/ %s: %s" % ("KnownSite", site))
+					print_log(inputs, "\/ %s: %s" % ("KnownSite", site))
 			else:
-				print("\/ %s: %s" % (key, val))
+				print_log(inputs, "\/ %s: %s" % (key, val))
 
-		print("\/" * 40)
-		print("\n")
+		print_log(inputs, "\/" * 40)
+		print_log(inputs, "\n")
 
 	return inputs
 
@@ -316,29 +318,35 @@ def prep_wd(inputs):
 				os.makedirs(ll_dir)
 			except OSError:
 				raise ngs_classes.ngsExcept("[ERROR] Failed to create directory %s" % (ll_dir))
+			
 	return 0
 
+def prep_log(inputs):
+	log_path = inputs.dir + '/' + inputs.log
+	with open(log_path, 'w') as f:
+		f.write("")
 
 if __name__ == '__main__':
 	
-	print("\n\n *** NGS Analysis ***\n\n")
-	print("[INFO:MAN] Create directories: readsTrimmed, readsAligned, bamProcessed, bamMerged, recalib, bamCalib\n\n")
-
-	## Get Inputs ##
 	inputs = ngs_classes.ngsInputs()
 	try:
 		get_inputs(inputs)
 	except ngs_classes.ngsExcept as err:
-		print(err.msg)
+		print_log(inputs, err.msg)
 		sys.exit(1)
+
+	prep_log(inputs)
+
+	print_log(inputs, "\n\n *** NGS Analysis ***\n\n")
+	print_log(inputs, "[INFO:MAN] Create directories: readsTrimmed, readsAligned, bamProcessed, bamMerged, recalib, bamCalib\n\n")
 
 	try:
 		check_inputs(inputs)
 	except ngs_classes.ngsExcept as err:
-		print(err.msg)
+		print_log(inputs, err.msg)
 		sys.exit(1)
 	else:
-		print("[INFO] Input check complete.")
+		print_log(inputs, "[INFO] Input check complete.")
 
 	targets_data = read_targets(inputs)
 
@@ -346,10 +354,10 @@ if __name__ == '__main__':
 	try:
 		ngs_preprocess.ngs_index(inputs)
 	except ngs_classes.ngsExcept as err:
-		print(err.msg)
+		print_log(inputs, err.msg)
 		sys.exit(1)
 	else:
-		print("[INFO:PASS] Reference indexing complete.")
+		print_log(inputs, "[INFO:PASS] Reference indexing complete.")
 	finally:
 		ngs_clean(inputs)
 	
@@ -358,10 +366,10 @@ if __name__ == '__main__':
 	try:
 		ngs_preprocess.ngs_trim(inputs,targets_data)
 	except ngs_classes.ngsExcept as err:
-		print(err.msg)
+		print_log(inputs, err.msg)
 		sys.exit(1)
 	else:
-		print("[INFO:PASS] Read trimming complete.")
+		print_log(inputs, "[INFO:PASS] Read trimming complete.")
 	finally:
 		ngs_clean(inputs)
 
@@ -369,10 +377,10 @@ if __name__ == '__main__':
 	try:
 		ngs_preprocess.ngs_align(inputs,targets_data)
 	except ngs_classes.ngsExcept as err:
-		print(err.msg)
+		print_log(inputs, err.msg)
 		sys.exit(1)
 	else:
-		print("[INFO:PASS] Read alignment complete.")
+		print_log(inputs, "[INFO:PASS] Read alignment complete.")
 	finally:
 		ngs_clean(inputs)
 
@@ -380,10 +388,10 @@ if __name__ == '__main__':
 	try:
 		ngs_preprocess.ngs_mark_sort(inputs,targets_data)
 	except ngs_classes.ngsExcept as err:
-		print(err.msg)
+		print_log(inputs, err.msg)
 		sys.exit(1)
 	else:
-		print("[INFO:PASS] Duplicate Marking & Sorting complete.")
+		print_log(inputs, "[INFO:PASS] Duplicate Marking & Sorting complete.")
 	finally:
 		ngs_clean(inputs)
 
@@ -392,10 +400,10 @@ if __name__ == '__main__':
 	try:
 		ngs_preprocess.ngs_merge(inputs,targets_data,targets_data_processed)
 	except ngs_classes.ngsExcept as err:
-		print(err.msg)
+		print_log(inputs, err.msg)
 		sys.exit(1)
 	else:
-		print("[INFO:PASS] Bam merging complete.")
+		print_log(inputs, "[INFO:PASS] Bam merging complete.")
 	finally:
 		ngs_clean(inputs)
 
@@ -404,10 +412,10 @@ if __name__ == '__main__':
 		try:
 			ngs_preprocess.bqsr(inputs,targets_data_processed)
 		except ngs_classes.ngsExcept as err:
-			print(err.msg)
+			print_log(inputs, err.msg)
 			sys.exit(1)
 		else:
-			print("[INFO:PASS] BQSR complete.")
+			print_log(inputs, "[INFO:PASS] BQSR complete.")
 		finally:
 			ngs_clean(inputs)
 	else:
@@ -418,19 +426,19 @@ if __name__ == '__main__':
 				s._bamCalibTumor = s._bamTumor
 				s._bamCalibNormal = s._bamNormal
 
-	if inputs.verbose: print("[INFO] Preprocessing done.")
+	if inputs.verbose: print_log(inputs, "[INFO] Preprocessing done.")
 	
 	## Workflow ##
 	if(inputs.workflow == "GERMLINESNVINDEL"):
 		
-		if inputs.verbose: print("[INFO] GERMLINESNVINDEL Analysis")
+		if inputs.verbose: print_log(inputs, "[INFO] GERMLINESNVINDEL Analysis")
 		
 		## SNV Indel ##
 		if(re.search("HAPLOTYPECALLER",inputs.tool)):
 			try:
 				ngs_germline.ngs_haplotypecaller(inputs,targets_data_processed)
 			except ngs_classes.ngsExcept as err:
-				print(err.msg)
+				print_log(inputs, err.msg)
 				sys.exit(1)
 			finally:
 				ngs_clean(inputs)
@@ -438,7 +446,7 @@ if __name__ == '__main__':
 			try:
 				ngs_germline.ngs_haplotypecaller_combine(inputs,targets_data_processed)
 			except ngs_classes.ngsExcept as err:
-				print(err.msg)
+				print_log(inputs, err.msg)
 				sys.exit(1)
 			finally:
 				ngs_clean(inputs)
@@ -446,7 +454,7 @@ if __name__ == '__main__':
 			try:
 				ngs_germline.ngs_haplotypecaller_genotype(inputs)
 			except ngs_classes.ngsExcept as err:
-				print(err.msg)
+				print_log(inputs, err.msg)
 				sys.exit(1)
 			finally:
 				ngs_clean(inputs)
@@ -454,7 +462,7 @@ if __name__ == '__main__':
 			try:
 				ngs_germline.ngs_haplotypecaller_filter(inputs)
 			except ngs_classes.ngsExcept as err:
-				print(err.msg)
+				print_log(inputs, err.msg)
 				sys.exit(1)
 			finally:
 				ngs_clean(inputs)
@@ -463,32 +471,32 @@ if __name__ == '__main__':
 			try:
 				ngs_germline.ngs_strelka_germline(inputs,targets_data_processed)
 			except ngs_classes.ngsExcept as err:
-				print(err.msg)
+				print_log(inputs, err.msg)
 				sys.exit(1)
 			finally:
 				ngs_clean(inputs)
 
 		## CNV ##
 		if inputs.verbose: 
-			print("[INFO] Cnvkit for germline analysis is not supported yet.")
+			print_log(inputs, "[INFO] Cnvkit for germline analysis is not supported yet.")
 			sys.exit(0)
 			try:
 				ngs_germline.ngs_cnvkit_germline(inputs,targets_data_processed)
 			except ngs_classes.ngsExcept as err:
-				print(err.msg)
+				print_log(inputs, err.msg)
 				sys.exit(1)
 			finally:
 				ngs_clean(inputs)
 	elif(inputs.workflow == "SOMATICSNVINDEL"):
 	
-		if inputs.verbose: print("[INFO] SOMATICSNVINDEL Analysis")
+		if inputs.verbose: print_log(inputs, "[INFO] SOMATICSNVINDEL Analysis")
 
 		## SNV Indel ##
 		if(re.search("STRELKA2", inputs.tool)):
 			try:
 				ngs_somatic.ngs_strelka_somatic(inputs,targets_data_processed)
 			except ngs_classes.ngsExcept as err:
-				print(err.msg)
+				print_log(inputs, err.msg)
 				sys.exit(1)
 			finally:
 				ngs_clean(inputs)
@@ -496,7 +504,7 @@ if __name__ == '__main__':
 			try:
 				ngs_somatic.ngs_mutect(inputs,targets_data_processed)
 			except ngs_classes.ngsExcept as err:
-				print(err.msg)
+				print_log(inputs, err.msg)
 				sys.exit(1)
 			finally:
 				ngs_clean(inputs)
@@ -505,7 +513,7 @@ if __name__ == '__main__':
 		try:
 			ngs_somatic.ngs_cnvkit_somatic(inputs,targets_data_processed)
 		except ngs_classes.ngsExcept as err:
-			print(err.msg)
+			print_log(inputs, err.msg)
 			sys.exit(1)
 		finally:
 			ngs_clean(inputs)
