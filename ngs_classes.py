@@ -34,6 +34,7 @@ class ngsInputs:
 		self.dry = ""
 		self.clear = False
 		self.title = ""
+		self.log = ""
 		self.bed = ""
 		self.cbed = ""
 		self.bqsr = False
