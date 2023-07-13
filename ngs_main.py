@@ -264,7 +264,7 @@ def get_inputs(inputs):
 	inputs.dir = os.path.abspath(args.dir)
 	inputs.threads = args.threads
 	inputs.title = args.title
-	inputs.log = args.log
+	inputs.log = os.path.abspath(args.log)
 	inputs.bed = args.bed
 	inputs.cbed = args.cbed	
 	
@@ -322,8 +322,7 @@ def prep_wd(inputs):
 	return 0
 
 def prep_log(inputs):
-	log_path = inputs.dir + '/' + inputs.log
-	with open(log_path, 'w') as f:
+	with open(inputs.log, 'w') as f:
 		f.write("")
 
 if __name__ == '__main__':
