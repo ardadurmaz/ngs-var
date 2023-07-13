@@ -3,17 +3,18 @@ import sys, os, argparse
 import os.path, re
 import glob
 import ngs_classes
+from ngs_functions import print_log
 ######################################################
 
 def ngs_haplotypecaller(inputs, targets_data_processed):
 	
-	print("\n<---> HaplotypeCaller <--->\n") ## 0 return code for success
+	print_log(inputs, "\n<---> HaplotypeCaller <--->\n") ## 0 return code for success
 	runDir = os.path.abspath(inputs.dir + '/HCaller/')
 
 	if(os.path.exists(runDir)):
-		if inputs.verbose: print("[INFO] HaplotypeCaller directory found")
+		if inputs.verbose: print_log(inputs, "[INFO] HaplotypeCaller directory found")
 	else:
-		if inputs.verbose: print("[INFO] Creating HaplotypeCaller directory: %s" % (runDir))
+		if inputs.verbose: print_log(inputs, "[INFO] Creating HaplotypeCaller directory: %s" % (runDir))
 		try:
 			os.mkdir(runDir)
 		except OSError:
@@ -22,9 +23,9 @@ def ngs_haplotypecaller(inputs, targets_data_processed):
 	## Index ##
 	for s in targets_data_processed:
 		if(len(glob.glob(os.path.abspath(s._bamCalib + '.bai'))) > 0):
-			print("[INFO] Indices found, skipping.")
+			print_log(inputs, "[INFO] Indices found, skipping.")
 		else:
-			if inputs.verbose: print('[INFO:COMMAND] %s index -t %d %s' % (inputs.sambamba, inputs.threads, s._bamCalib))
+			if inputs.verbose: print_log(inputs, '[INFO:COMMAND] %s index -t %d %s' % (inputs.sambamba, inputs.threads, s._bamCalib))
 			if not inputs.dry: os.system('%s index -t %d %s' % (inputs.sambamba, inputs.threads, s._bamCalib))
 
 	for s in targets_data_processed:
@@ -33,11 +34,11 @@ def ngs_haplotypecaller(inputs, targets_data_processed):
 		sampleName = s._id
 		
 		if(os.path.exists(outFile)):
-			if inputs.verbose: print(f"[INFO] HaplotypeCaller raw file found for sample {s._id}, skipping.")
+			if inputs.verbose: print_log(inputs, f"[INFO] HaplotypeCaller raw file found for sample {s._id}, skipping.")
 			return 0
 		else:		
 			if inputs.verbose:
-				print("[INFO:COMMAND] java -Xmx8g -jar %s HaplotypeCaller --native-pair-hmm-threads %d -ERC GVCF -R %s -I %s "\
+				print_log(inputs, "[INFO:COMMAND] java -Xmx8g -jar %s HaplotypeCaller --native-pair-hmm-threads %d -ERC GVCF -R %s -I %s "\
 				"--sample-name %s "\
 				"-stand-call-conf 10 -O %s "\
 				"-A BaseQualityRankSumTest -A Coverage -A DepthPerAlleleBySample "\
@@ -50,11 +51,11 @@ def ngs_haplotypecaller(inputs, targets_data_processed):
 				"-A FisherStrand -A QualByDepth -A ReadPosRankSumTest" % (inputs.gatk, inputs.threads, inputs.reference, inFile, sampleName, outFile))
 				if(ret_val >> 8 != 0): raise ngs_classes.ngsExcept(f"[ERROR:HaplotypeCaller] Failed to call germline variants for sample {s._id}")
 	
-	print("\n<---> Done <--->\n")
+	print_log(inputs, "\n<---> Done <--->\n")
 	return 0
 
 def ngs_haplotypecaller_combine(inputs, targets_data_processed):
-	print("\n<---> CombineGVCFs <--->\n")
+	print_log(inputs, "\n<---> CombineGVCFs <--->\n")
 	runDir = os.path.abspath(inputs.dir + '/HCaller/')
 	
 	files = [runDir + f'/{s._id}.raw.snps.indels.vcf' for s in targets_data_processed]
@@ -62,43 +63,43 @@ def ngs_haplotypecaller_combine(inputs, targets_data_processed):
 	outFile = runDir + '/cohort.g.vcf'
 
 	if(os.path.exists(outFile)):
-		if inputs.verbose: print("[INFO] Skipping")
+		if inputs.verbose: print_log(inputs, "[INFO] Skipping")
 		return 0
 	else:
 		if inputs.verbose:
-			print("[INFO:COMMAND] java -Xmx8g -jar %s CombineGVCFs -R %s --variant %s -O %s" % \
+			print_log(inputs, "[INFO:COMMAND] java -Xmx8g -jar %s CombineGVCFs -R %s --variant %s -O %s" % \
 		       (inputs.gatk, inputs.reference, inFile, outFile))
 		if not inputs.dry:
 			ret_val = os.system("java -Xmx8g -jar %s CombineGVCFs -R %s --variant %s -O %s" % \
 		       (inputs.gatk, inputs.reference, inFile, outFile))
 			if(ret_val >> 8 != 0): raise ngs_classes.ngsExcept("[ERROR:CombineGVCFs] Failed to combine GVCFs")
 
-	print("\n<---> Done <--->\n")
+	print_log(inputs, "\n<---> Done <--->\n")
 	return 0
 
 def ngs_haplotypecaller_genotype(inputs):
-    print("\n<---> GenotypeGVCFs <--->\n")
+    print_log(inputs, "\n<---> GenotypeGVCFs <--->\n")
     runDir = os.path.abspath(inputs.dir + '/HCaller/')
 
     inFile = runDir + '/cohort.g.vcf'
     outFile = runDir + '/cohort_jointcall.vcf'
 
     if(os.path.exists(outFile)):
-        if inputs.verbose: print("[INFO] Skipping")
+        if inputs.verbose: print_log(inputs, "[INFO] Skipping")
         return 0
     else:
         if inputs.verbose:
-            print("java -Xmx8g -jar %s GenotypeGVCFs -R %s -V %s -O %s -A BaseQualityRankSumTest -A MappingQualityRankSumTest -A FisherStrand -A QualByDepth -A ReadPosRankSumTest -A RMSMappingQuality -A StrandOddsRatio -A DepthPerAlleleBySample -A Coverage -ip 100" % \
+            print_log(inputs, "java -Xmx8g -jar %s GenotypeGVCFs -R %s -V %s -O %s -A BaseQualityRankSumTest -A MappingQualityRankSumTest -A FisherStrand -A QualByDepth -A ReadPosRankSumTest -A RMSMappingQuality -A StrandOddsRatio -A DepthPerAlleleBySample -A Coverage -ip 100" % \
                 (inputs.gatk, inputs.reference, inFile, outFile))
         if not inputs.dry:
             ret_val = os.system("java -Xmx8g -jar %s GenotypeGVCFs -R %s -V %s -O %s -A BaseQualityRankSumTest -A MappingQualityRankSumTest -A FisherStrand -A QualByDepth -A ReadPosRankSumTest -A RMSMappingQuality -A StrandOddsRatio -A DepthPerAlleleBySample -A Coverage -ip 100" % \
                 (inputs.gatk, inputs.reference, inFile, outFile))
             if(ret_val >> 8 != 0): raise ngs_classes.ngsExcept("[ERROR:GenotypeGVCFs] Failed to perform joint genotyping")
-    print("\n<---> Done <--->\n")
+    print_log(inputs, "\n<---> Done <--->\n")
     return 0
 
 def ngs_haplotypecaller_filter(inputs):
-    print("\n<---> Variant Filtration <--->\n")
+    print_log(inputs, "\n<---> Variant Filtration <--->\n")
     runDir = os.path.abspath(inputs.dir + '/HCaller/')
     inFile = runDir + '/cohort_jointcall.vcf'
     normFile = runDir + '/norm.cohort.jointcall.vcf'
@@ -121,24 +122,24 @@ def ngs_haplotypecaller_filter(inputs):
 
     for command in commands:
         if inputs.verbose:
-            print("[INFO:COMMAND] %s" % command) 
+            print_log(inputs, "[INFO:COMMAND] %s" % command) 
         if not inputs.dry:
             ret_val = os.system(command)
             if(ret_val >> 8 != 0): 
                 raise ngs_classes.ngsExcept("[ERROR:VariantFiltration] Failed to process command: %s" % command)
         
-    print("\n<---> Done <--->\n")
+    print_log(inputs, "\n<---> Done <--->\n")
     return 0
 
 def ngs_strelka_germline(inputs, targets_data_processed):
 	
-	print("\n<---> Strelka2 Germline Workflow <--->\n")
+	print_log(inputs, "\n<---> Strelka2 Germline Workflow <--->\n")
 	
 	runDir = os.path.abspath(inputs.dir + '/STRELKA_GERMLINE/')
 	runWork = inputs.strelkabin + '/configureStrelkaGermlineWorkflow.py'
 	
 	if(os.path.exists(runDir)):
-		if inputs.verbose: print("[INFO] Strelka germline run directory found, skipping.")
+		if inputs.verbose: print_log(inputs, "[INFO] Strelka germline run directory found, skipping.")
 	else:
 		try:
 			os.mkdir(runDir)
@@ -148,9 +149,9 @@ def ngs_strelka_germline(inputs, targets_data_processed):
 	## Index Bam Files ##
 	for s in targets_data_processed:
 		if(len(glob.glob(os.path.abspath(s._bamCalib + '.bai'))) > 0):
-			print("[INFO] Indices found, skipping.")
+			print_log(inputs, "[INFO] Indices found, skipping.")
 		else:
-			if inputs.verbose: print('[INFO:COMMAND] %s index -t %d %s' % (inputs.sambamba, inputs.threads, s._bamCalib))
+			if inputs.verbose: print_log(inputs, '[INFO:COMMAND] %s index -t %d %s' % (inputs.sambamba, inputs.threads, s._bamCalib))
 			if not inputs.dry: os.system('%s index -t %d %s' % (inputs.sambamba, inputs.threads, s._bamCalib))
 	
 	files = []
@@ -166,9 +167,9 @@ def ngs_strelka_germline(inputs, targets_data_processed):
 		if inputs.exome:
 			if inputs.verbose:
 				if not(inputs.cbed is None):
-					print("[INFO:COMMAND] python %s --referenceFasta %s --exome --runDir %s --callRegions %s --bam %s" % (runWork,inputs.reference,runDir,inputs.cbed,inFile))
+					print_log(inputs, "[INFO:COMMAND] python %s --referenceFasta %s --exome --runDir %s --callRegions %s --bam %s" % (runWork,inputs.reference,runDir,inputs.cbed,inFile))
 				else:
-					print("[INFO:COMMAND] python %s --referenceFasta %s --exome --runDir %s --bam %s" % (runWork,inputs.reference,runDir,inFile))
+					print_log(inputs, "[INFO:COMMAND] python %s --referenceFasta %s --exome --runDir %s --bam %s" % (runWork,inputs.reference,runDir,inFile))
 			if not inputs.dry:
 				if not(inputs.cbed is None):
 					ret_val = os.system("python %s --referenceFasta %s --exome --runDir %s --callRegions %s --bam %s" % (runWork,inputs.reference,runDir,inputs.cbed,inFile))
@@ -180,9 +181,9 @@ def ngs_strelka_germline(inputs, targets_data_processed):
 		else:
 			if inputs.verbose:
 				if not(inputs.cbed is None):
-					print("[INFO:COMMAND] python %s --referenceFasta %s --runDir %s --callRegions %s --bam %s" % (runWork,inputs.reference,runDir,inputs.cbed,inFile))
+					print_log(inputs, "[INFO:COMMAND] python %s --referenceFasta %s --runDir %s --callRegions %s --bam %s" % (runWork,inputs.reference,runDir,inputs.cbed,inFile))
 				else:
-					print("[INFO:COMMAND] python %s --referenceFasta %s --runDir %s --bam %s" % (runWork,inputs.reference,runDir,inFile))
+					print_log(inputs, "[INFO:COMMAND] python %s --referenceFasta %s --runDir %s --bam %s" % (runWork,inputs.reference,runDir,inFile))
 				
 			if not inputs.dry:
 				if not(inputs.cbed is None):
@@ -195,22 +196,22 @@ def ngs_strelka_germline(inputs, targets_data_processed):
 	
 		## Run ##
 		if inputs.verbose:
-			print("[INFO:COMMAND] python %s -m local -j %d" % (runDir + '/runWorkflow.py',inputs.threads))
+			print_log(inputs, "[INFO:COMMAND] python %s -m local -j %d" % (runDir + '/runWorkflow.py',inputs.threads))
 		if not inputs.dry:
 			ret_val = os.system("python %s -m local -j %d" % (runDir + '/runWorkflow.py', inputs.threads))
 			if(ret_val >> 8 != 0): raise ngs_classes.ngsExcept("[ERROR:STRELKA] Failed to run strelka2 configuration")
 		
-	print("\n<---> Done <--->\n")
+	print_log(inputs, "\n<---> Done <--->\n")
 
 	return 0
 
 
 def ngs_cnvkit_germline(inputs, targets_data_processed):
 	
-	print("\n<---> Cnvkit Germline Workflow <--->\n")
+	print_log(inputs, "\n<---> Cnvkit Germline Workflow <--->\n")
 	runDir = inputs.dir + '/CNVKIT_GERMLINE/'
 	if(os.path.exists(runDir)):
-		print("[INFO] Cnvkit germline directory found, skipping.")
+		print_log(inputs, "[INFO] Cnvkit germline directory found, skipping.")
 	else:
 		try:
 			os.mkdir(runDir)
@@ -220,9 +221,9 @@ def ngs_cnvkit_germline(inputs, targets_data_processed):
 	## Index Bam Files ##
 	for s in targets_data_processed:
 		if(len(glob.glob(os.path.abspath(s._bamCalib + '.bai'))) > 0):
-			print("[INFO] Indices found, skipping.")
+			print_log(inputs, "[INFO] Indices found, skipping.")
 		else:
-			if inputs.verbose: print('[INFO:COMMAND] %s index -t %d %s' % (inputs.sambamba, inputs.threads, s._bamCalib))
+			if inputs.verbose: print_log(inputs, '[INFO:COMMAND] %s index -t %d %s' % (inputs.sambamba, inputs.threads, s._bamCalib))
 			if not inputs.dry: os.system('%s index -t %d %s' % (inputs.sambamba, inputs.threads, s._bamCalib))
 	
 	tumor_files = []
@@ -232,27 +233,27 @@ def ngs_cnvkit_germline(inputs, targets_data_processed):
 	if inputs.exome:
 		if inputs.verbose:
 			if not(inputs.bed is None):
-				print("[INFO:COMMAND] %s batch --drop-low-coverage -p %d --normal -f %s -t %s -d %s %s" % (inputs.cnvkit,inputs.threads,inputs.reference,inputs.bed,runDir," ".join(tumor_files)))
+				print_log(inputs, "[INFO:COMMAND] %s batch --drop-low-coverage -p %d --normal -f %s -t %s -d %s %s" % (inputs.cnvkit,inputs.threads,inputs.reference,inputs.bed,runDir," ".join(tumor_files)))
 			else:
-				print("[ERROR:COMMAND] Cannot run copy number analysis without target file for exome data")
+				print_log(inputs, "[ERROR:COMMAND] Cannot run copy number analysis without target file for exome data")
 				return False
 		if not inputs.dry:
 			if not(inputs.bed is None):
 				os.system("%s batch --drop-low-coverage -p %d --normal  -f %s -t %s -d %s %s" % (inputs.cnvkit,inputs.threads,inputs.reference,inputs.bed,runDir," ".join(tumor_files)))
 			else:
-				print("[ERROR:COMMAND] Cannot run copy number analysis without target file for exome data")
+				print_log(inputs, "[ERROR:COMMAND] Cannot run copy number analysis without target file for exome data")
 				return False
 	else:
 		if inputs.verbose:
 			if not(inputs.bed is None):
-				print("[INFO:COMMAND] %s batch -m wgs --drop-low-coverage -p %d --normal -f %s -t %s -d %s %s" % (inputs.cnvkit,inputs.threads,inputs.reference,inputs.bed,runDir," ".join(tumor_files)))
+				print_log(inputs, "[INFO:COMMAND] %s batch -m wgs --drop-low-coverage -p %d --normal -f %s -t %s -d %s %s" % (inputs.cnvkit,inputs.threads,inputs.reference,inputs.bed,runDir," ".join(tumor_files)))
 			else:
-				print("[INFO:COMMAND] %s batch -m wgs --drop-low-coverage -p %d --normal -f %s -d %s %s" % (inputs.cnvkit,inputs.threads,inputs.reference,runDir," ".join(tumor_files)))
+				print_log(inputs, "[INFO:COMMAND] %s batch -m wgs --drop-low-coverage -p %d --normal -f %s -d %s %s" % (inputs.cnvkit,inputs.threads,inputs.reference,runDir," ".join(tumor_files)))
 		if not inputs.dry:
 			if not(inputs.bed is None):
 				os.system("%s batch -m wgs --drop-low-coverage -p %d --normal -f %s -t %s -d %s %s" % (inputs.cnvkit,inputs.threads,inputs.reference,inputs.bed,runDir," ".join(tumor_files)))
 			else:
 				os.system("%s batch -m wgs --drop-low-coverage -p %d --normal -f %s -d %s %s" % (inputs.cnvkit,inputs.threads,inputs.reference,runDir," ".join(tumor_files)))
 				
-	print("\n<---> Done. <--->\n")
+	print_log(inputs, "\n<---> Done. <--->\n")
 	return 0
