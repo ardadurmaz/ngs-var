@@ -13,7 +13,7 @@ sys.path.append(dir_path)
 import ngs_classes
 
 def print_log(inputs, text):
-    with open(inputs.dir + "/" + inputs.log, 'a') as f:
+    with open(inputs.log, 'a') as f:
         f.write("\n" + text)
 
 def check_inputs(inputs):
