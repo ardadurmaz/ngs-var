@@ -16,6 +16,13 @@ def print_log(inputs, text):
     with open(inputs.log, 'a') as f:
         f.write("\n" + text)
 
+def run_command(inputs, command, error_msg):
+    if inputs.verbose:
+        print_log(inputs, f"[INFO:COMMAND] {command}")
+    if not inputs.dry:
+        ret_val = os.system(command)
+        if(ret_val >> 8 != 0): raise ngs_classes.ngsExcept(error_msg)
+
 def check_inputs(inputs):
     _FLAG = True
 
