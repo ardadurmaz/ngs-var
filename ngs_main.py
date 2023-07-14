@@ -8,7 +8,7 @@ import glob
 dir_path = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(dir_path)
 import ngs_classes, ngs_germline, ngs_somatic, ngs_preprocess
-from ngs_functions import print_log
+from ngs_functions import print_log, run_command
 ######################################################
 	
 def ngs_clean(inputs):
@@ -204,6 +204,10 @@ def parse_config(config_file, inputs):
 					inputs.afterqc = val
 					if inputs.verbose: print_log(inputs, "[INFO] Parsed afterqc resource")
 					config_count = config_count + 1
+				elif key == 'RSCRIPT':
+					inputs.rscript = val
+					if inputs.verbose: print_log(inputs, "[INFO] Parsed rscript resource")
+					config_count = config_count + 1
 				elif key == 'STRELKABIN':
 					inputs.strelkabin = val
 					if inputs.verbose: print_log(inputs, "[INFO] Parsed strelkabin resource")
@@ -281,6 +285,7 @@ def get_inputs(inputs):
 	inputs.workflow = str.upper(args.workflow)
 	inputs.tool = str.upper(args.tool)
 
+	prep_log(inputs)
 	## Get Config Data ##
 	try:
 		parse_config(args.config, inputs)
@@ -333,8 +338,6 @@ if __name__ == '__main__':
 	except ngs_classes.ngsExcept as err:
 		print_log(inputs, err.msg)
 		sys.exit(1)
-
-	prep_log(inputs)
 
 	print_log(inputs, "\n\n *** NGS Analysis ***\n\n")
 	print_log(inputs, "[INFO:MAN] Create directories: readsTrimmed, readsAligned, bamProcessed, bamMerged, recalib, bamCalib\n\n")
@@ -477,8 +480,6 @@ if __name__ == '__main__':
 
 		## CNV ##
 		if inputs.verbose: 
-			print_log(inputs, "[INFO] Cnvkit for germline analysis is not supported yet.")
-			sys.exit(0)
 			try:
 				ngs_germline.ngs_cnvkit_germline(inputs,targets_data_processed)
 			except ngs_classes.ngsExcept as err:
@@ -486,6 +487,7 @@ if __name__ == '__main__':
 				sys.exit(1)
 			finally:
 				ngs_clean(inputs)
+
 	elif(inputs.workflow == "SOMATICSNVINDEL"):
 	
 		if inputs.verbose: print_log(inputs, "[INFO] SOMATICSNVINDEL Analysis")
@@ -499,6 +501,7 @@ if __name__ == '__main__':
 				sys.exit(1)
 			finally:
 				ngs_clean(inputs)
+
 		elif(re.search("MUTECT2", inputs.tool)):
 			try:
 				ngs_somatic.ngs_mutect(inputs,targets_data_processed)
