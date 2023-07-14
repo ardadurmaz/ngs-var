@@ -25,7 +25,7 @@ class ngsInputs:
 		self.strelkabin = ""
 		self.mantabin = ""
 		self.cnvkit = ""
-		
+		self.rscript = ""
 		
 		## Arguments ##
 		self.dir = ""
