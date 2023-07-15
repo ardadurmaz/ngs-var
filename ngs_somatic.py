@@ -3,7 +3,7 @@ import sys, os, argparse
 import os.path, re
 import glob
 import ngs_classes
-from ngs_functions import print_log
+from ngs_functions import print_log, run_command
 ######################################################
 
 
@@ -295,36 +295,42 @@ def ngs_cnvkit_somatic(inputs, targets_data_processed):
 			if inputs.verbose: print_log(inputs, '[INFO:COMMAND] %s index -t %d %s' % (inputs.sambamba, inputs.threads, s._bamCalibNormal))
 			if not inputs.dry: os.system('%s index -t %d %s' % (inputs.sambamba, inputs.threads, s._bamCalibNormal))
 	
-	normal_files = []
-	tumor_files = []
+	outBed = runDir + 'access.bed'
+	targets = inputs.bed.split('.bed')[0] + '.target.bed'
+	antitargets = inputs.bed.split('.bed')[0] + '.antitarget.bed'
+	outRef = runDir + 'reference.cnn'
+	error_msg = "[ERROR:CNVKIT] Failed to run CNVkit configuration"
+	files = []
 	for s in targets_data_processed:
-		normal_files.append(s._bamCalibNormal)
-		tumor_files.append(s._bamCalibTumor)
+		files.append(s._bamCalibNormal)
+		files.append(s._bamCalibTumor)
+	run_command(inputs, "%s access %s -o %s" % (inputs.cnvkit, inputs.reference, outBed), error_msg)
+	for s in targets_data_processed:
+
+		if inputs.exome:
+			run_command(inputs, "%s autobin %s -t %s -g %s" % (inputs.cnvkit, " ".join(files), inputs.bed, outBed), error_msg)
+		else:
+			run_command(inputs, "%s autobin %s -t %s -g %s -m wgs" % (inputs.cnvkit, " ".join(files), inputs.bed, outBed), error_msg)
+
+	for s in targets_data_processed:
+		targetCoverageNormal = runDir + s._id + ".Normal" + ".targetcoverage.cnn"
+		antitargetCoverageNormal = runDir + s._id + ".Normal" + ".antitargetcoverage.cnn"
+		targetCoverageTumor = runDir + s._id + ".Tumor" + ".targetcoverage.cnn"
+		antitargetCoverageTumor = runDir + s._id + ".Tumor" + ".antitargetcoverage.cnn"
+		run_command(inputs, "%s coverage %s %s -o %s -p %d" % (inputs.cnvkit, s._bamCalibNormal, targets, targetCoverageNormal, inputs.threads), error_msg)
+		run_command(inputs, "%s coverage %s %s -o %s -p %d" % (inputs.cnvkit, s._bamCalibNormal, antitargets, antitargetCoverageNormal, inputs.threads), error_msg)
+		run_command(inputs, "%s coverage %s %s -o %s -p %d" % (inputs.cnvkit, s._bamCalibTumor, targets, targetCoverageTumor, inputs.threads), error_msg)
+		run_command(inputs, "%s coverage %s %s -o %s -p %d" % (inputs.cnvkit, s._bamCalibTumor, antitargets, antitargetCoverageTumor, inputs.threads), error_msg)
+
+		run_command(inputs, "%s reference %s --fasta %s -o %s" % (inputs.cnvkit, targetCoverageNormal + " " + antitargetCoverageNormal, inputs.reference, outRef), error_msg)
 	
-	if inputs.exome:
-		if inputs.verbose:
-			if not(inputs.bed is None):
-				print_log(inputs, "[INFO:COMMAND] %s batch --drop-low-coverage -p %d --normal %s -f %s -t %s -d %s %s" % (inputs.cnvkit,inputs.threads," ".join(normal_files),inputs.reference,inputs.bed,runDir," ".join(tumor_files)))
-			else:
-				print_log(inputs, "[ERROR:COMMAND] Cannot run copy number analysis without target file for exome data")
-				return False
-		if not inputs.dry:
-			if not(inputs.bed is None):
-				os.system("%s batch --drop-low-coverage -p %d --normal %s -f %s -t %s -d %s %s" % (inputs.cnvkit,inputs.threads," ".join(normal_files),inputs.reference,inputs.bed,runDir," ".join(tumor_files)))
-			else:
-				print_log(inputs, "[ERROR:COMMAND] Cannot run copy number analysis without target file for exome data")
-				return False
-	else:
-		if inputs.verbose:
-			if not(inputs.bed is None):
-				print_log(inputs, "[INFO:COMMAND] %s batch -m wgs --drop-low-coverage -p %d --normal %s -f %s -t %s -d %s %s" % (inputs.cnvkit,inputs.threads," ".join(normal_files),inputs.reference,inputs.bed,runDir," ".join(tumor_files)))
-			else:
-				print_log(inputs, "[INFO:COMMAND] %s batch -m wgs --drop-low-coverage -p %d --normal %s -f %s -d %s %s" % (inputs.cnvkit,inputs.threads," ".join(normal_files),inputs.reference,runDir," ".join(tumor_files)))
-		if not inputs.dry:
-			if not(inputs.bed is None):
-				os.system("%s batch -m wgs --drop-low-coverage -p %d --normal %s -f %s -t %s -d %s %s" % (inputs.cnvkit,inputs.threads," ".join(normal_files),inputs.reference,inputs.bed,runDir," ".join(tumor_files)))
-			else:
-				os.system("%s batch -m wgs --drop-low-coverage -p %d --normal %s -f %s -d %s %s" % (inputs.cnvkit,inputs.threads," ".join(normal_files),inputs.reference,runDir," ".join(tumor_files)))
-				
+	for s in targets_data_processed:
+		cnr = runDir + s._id + ".Normal" + ".cnr"
+		cns = runDir + s._id + ".Normal" + ".cns"
+		targetCoverageTumor = runDir + s._id + ".Tumor" + ".targetcoverage.cnn"
+		antitargetCoverageTumor = runDir + s._id + ".Tumor" + ".antitargetcoverage.cnn"
+		run_command(inputs, "%s fix %s %s %s -o %s" % (inputs.cnvkit, targetCoverageTumor, antitargetCoverageTumor, outRef, cnr), error_msg)
+		run_command(inputs, "%s segment %s -o %s -m cbs --rscript-path %s --smooth-cbs --drop-low-coverage --drop-outliers 10" % (inputs.cnvkit, cnr, cns, inputs.rscript), error_msg)
+
 	print_log(inputs, "\n<---> Done. <--->\n")
 	return 0
