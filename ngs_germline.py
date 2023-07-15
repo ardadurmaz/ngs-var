@@ -3,7 +3,7 @@ import sys, os, argparse
 import os.path, re
 import glob
 import ngs_classes
-from ngs_functions import print_log
+from ngs_functions import print_log, run_command
 ######################################################
 
 def ngs_haplotypecaller(inputs, targets_data_processed):
@@ -167,38 +167,38 @@ def ngs_strelka_germline(inputs, targets_data_processed):
 		if inputs.exome:
 			if inputs.verbose:
 				if not(inputs.cbed is None):
-					print_log(inputs, "[INFO:COMMAND] python %s --referenceFasta %s --exome --runDir %s --callRegions %s --bam %s" % (runWork,inputs.reference,runDir,inputs.cbed,inFile))
+					print_log(inputs, "[INFO:COMMAND] python2.7 %s --referenceFasta %s --exome --runDir %s --callRegions %s --bam %s" % (runWork,inputs.reference,runDir,inputs.cbed,inFile))
 				else:
-					print_log(inputs, "[INFO:COMMAND] python %s --referenceFasta %s --exome --runDir %s --bam %s" % (runWork,inputs.reference,runDir,inFile))
+					print_log(inputs, "[INFO:COMMAND] python2.7 %s --referenceFasta %s --exome --runDir %s --bam %s" % (runWork,inputs.reference,runDir,inFile))
 			if not inputs.dry:
 				if not(inputs.cbed is None):
-					ret_val = os.system("python %s --referenceFasta %s --exome --runDir %s --callRegions %s --bam %s" % (runWork,inputs.reference,runDir,inputs.cbed,inFile))
+					ret_val = os.system("python2.7 %s --referenceFasta %s --exome --runDir %s --callRegions %s --bam %s" % (runWork,inputs.reference,runDir,inputs.cbed,inFile))
 					if(ret_val >> 8 != 0): raise ngs_classes.ngsExcept("[ERROR:STRELKA] Failed to configure strelka2 run")
 				else:
-					ret_val = os.system("python %s --referenceFasta %s --exome --runDir %s --bam %s" % (runWork,inputs.reference,runDir,inFile))
+					ret_val = os.system("python2.7 %s --referenceFasta %s --exome --runDir %s --bam %s" % (runWork,inputs.reference,runDir,inFile))
 					if(ret_val >> 8 != 0): raise ngs_classes.ngsExcept("[ERROR:STRELKA] Failed to configure strelka2 run")
 				
 		else:
 			if inputs.verbose:
 				if not(inputs.cbed is None):
-					print_log(inputs, "[INFO:COMMAND] python %s --referenceFasta %s --runDir %s --callRegions %s --bam %s" % (runWork,inputs.reference,runDir,inputs.cbed,inFile))
+					print_log(inputs, "[INFO:COMMAND] python2.7 %s --referenceFasta %s --runDir %s --callRegions %s --bam %s" % (runWork,inputs.reference,runDir,inputs.cbed,inFile))
 				else:
-					print_log(inputs, "[INFO:COMMAND] python %s --referenceFasta %s --runDir %s --bam %s" % (runWork,inputs.reference,runDir,inFile))
+					print_log(inputs, "[INFO:COMMAND] python2.7 %s --referenceFasta %s --runDir %s --bam %s" % (runWork,inputs.reference,runDir,inFile))
 				
 			if not inputs.dry:
 				if not(inputs.cbed is None):
-					ret_val = os.system("python %s --referenceFasta %s --runDir %s --callRegions %s --bam %s" % (runWork,inputs.reference,runDir,inputs.cbed,inFile))
+					ret_val = os.system("python2.7 %s --referenceFasta %s --runDir %s --callRegions %s --bam %s" % (runWork,inputs.reference,runDir,inputs.cbed,inFile))
 					if(ret_val >> 8 != 0): raise ngs_classes.ngsExcept("[ERROR:STRELKA] Failed to configure strelka2 run")
 				else:
-					ret_val = os.system("python %s --referenceFasta %s --runDir %s --bam %s" % (runWork,inputs.reference,runDir,inFile))
+					ret_val = os.system("python2.7 %s --referenceFasta %s --runDir %s --bam %s" % (runWork,inputs.reference,runDir,inFile))
 					if(ret_val >> 8 != 0): raise ngs_classes.ngsExcept("[ERROR:STRELKA] Failed to configure strelka2 run")
 	
 	
 		## Run ##
 		if inputs.verbose:
-			print_log(inputs, "[INFO:COMMAND] python %s -m local -j %d" % (runDir + '/runWorkflow.py',inputs.threads))
+			print_log(inputs, "[INFO:COMMAND] python2.7 %s -m local -j %d" % (runDir + '/runWorkflow.py',inputs.threads))
 		if not inputs.dry:
-			ret_val = os.system("python %s -m local -j %d" % (runDir + '/runWorkflow.py', inputs.threads))
+			ret_val = os.system("python2.7 %s -m local -j %d" % (runDir + '/runWorkflow.py', inputs.threads))
 			if(ret_val >> 8 != 0): raise ngs_classes.ngsExcept("[ERROR:STRELKA] Failed to run strelka2 configuration")
 		
 	print_log(inputs, "\n<---> Done <--->\n")
@@ -226,34 +226,33 @@ def ngs_cnvkit_germline(inputs, targets_data_processed):
 			if inputs.verbose: print_log(inputs, '[INFO:COMMAND] %s index -t %d %s' % (inputs.sambamba, inputs.threads, s._bamCalib))
 			if not inputs.dry: os.system('%s index -t %d %s' % (inputs.sambamba, inputs.threads, s._bamCalib))
 	
-	tumor_files = []
+	files = []
 	for s in targets_data_processed:
-		tumor_files.append(s._bamCalib)
+		files.append(s._bamCalib)
 	
+	outBed = runDir + 'access.bed'
+	targets = inputs.bed.split('.bed')[0] + '.target.bed'
+	antitargets = inputs.bed.split('.bed')[0] + '.antitarget.bed'
+	targetCoverage = runDir + s._id + ".Normal" + ".targetcoverage.cnn"
+	antitargetCoverage = runDir + s._id + ".Normal" + ".antitargetcoverage.cnn"
+	outRef = runDir + 'flatReference.cnn'
+	cnr = runDir + s._id + ".Normal" + ".cnr"
+	cns = runDir + s._id + ".Normal" + ".cns"
+	error_msg = "[ERROR:CNVKIT] Failed to run CNVkit configuration"
+
+	run_command(inputs, "%s access %s -o %s" % (inputs.cnvkit, inputs.reference, outBed), error_msg)
+
 	if inputs.exome:
-		if inputs.verbose:
-			if not(inputs.bed is None):
-				print_log(inputs, "[INFO:COMMAND] %s batch --drop-low-coverage -p %d --normal -f %s -t %s -d %s %s" % (inputs.cnvkit,inputs.threads,inputs.reference,inputs.bed,runDir," ".join(tumor_files)))
-			else:
-				print_log(inputs, "[ERROR:COMMAND] Cannot run copy number analysis without target file for exome data")
-				return False
-		if not inputs.dry:
-			if not(inputs.bed is None):
-				os.system("%s batch --drop-low-coverage -p %d --normal  -f %s -t %s -d %s %s" % (inputs.cnvkit,inputs.threads,inputs.reference,inputs.bed,runDir," ".join(tumor_files)))
-			else:
-				print_log(inputs, "[ERROR:COMMAND] Cannot run copy number analysis without target file for exome data")
-				return False
+		run_command(inputs, "%s autobin %s -t %s -g %s" % (inputs.cnvkit, " ".join(files), inputs.bed, outBed), error_msg)
 	else:
-		if inputs.verbose:
-			if not(inputs.bed is None):
-				print_log(inputs, "[INFO:COMMAND] %s batch -m wgs --drop-low-coverage -p %d --normal -f %s -t %s -d %s %s" % (inputs.cnvkit,inputs.threads,inputs.reference,inputs.bed,runDir," ".join(tumor_files)))
-			else:
-				print_log(inputs, "[INFO:COMMAND] %s batch -m wgs --drop-low-coverage -p %d --normal -f %s -d %s %s" % (inputs.cnvkit,inputs.threads,inputs.reference,runDir," ".join(tumor_files)))
-		if not inputs.dry:
-			if not(inputs.bed is None):
-				os.system("%s batch -m wgs --drop-low-coverage -p %d --normal -f %s -t %s -d %s %s" % (inputs.cnvkit,inputs.threads,inputs.reference,inputs.bed,runDir," ".join(tumor_files)))
-			else:
-				os.system("%s batch -m wgs --drop-low-coverage -p %d --normal -f %s -d %s %s" % (inputs.cnvkit,inputs.threads,inputs.reference,runDir," ".join(tumor_files)))
-				
+		run_command(inputs, "%s autobin %s -t %s -g %s -m wgs" % (inputs.cnvkit, " ".join(files), inputs.bed, outBed), error_msg)
+
+	for s in targets_data_processed:
+		run_command(inputs, "%s coverage %s %s -o %s -p %d" % (inputs.cnvkit, s._bamCalib, targets, targetCoverage, inputs.threads), error_msg)
+		run_command(inputs, "%s coverage %s %s -o %s -p %d" % (inputs.cnvkit, s._bamCalib, antitargets, antitargetCoverage, inputs.threads), error_msg)
+		run_command(inputs, "%s reference -o %s -f %s -t %s -a %s" % (inputs.cnvkit, outRef, inputs.reference, targets, antitargets), error_msg)
+		run_command(inputs, "%s fix %s %s %s -o %s" % (inputs.cnvkit, targetCoverage, antitargetCoverage, outRef, cnr), error_msg)
+		run_command(inputs, "%s segment %s -o %s -m cbs --rscript-path %s --smooth-cbs --drop-low-coverage --drop-outliers 10" % (inputs.cnvkit, cnr, cns, inputs.rscript), error_msg)
+
 	print_log(inputs, "\n<---> Done. <--->\n")
 	return 0
