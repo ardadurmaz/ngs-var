@@ -325,8 +325,8 @@ def ngs_cnvkit_somatic(inputs, targets_data_processed):
 		run_command(inputs, "%s reference %s --fasta %s -o %s" % (inputs.cnvkit, targetCoverageNormal + " " + antitargetCoverageNormal, inputs.reference, outRef), error_msg)
 	
 	for s in targets_data_processed:
-		cnr = runDir + s._id + ".Normal" + ".cnr"
-		cns = runDir + s._id + ".Normal" + ".cns"
+		cnr = runDir + s._id + ".Tumor" + ".cnr"
+		cns = runDir + s._id + ".Tumor" + ".cns"
 		targetCoverageTumor = runDir + s._id + ".Tumor" + ".targetcoverage.cnn"
 		antitargetCoverageTumor = runDir + s._id + ".Tumor" + ".antitargetcoverage.cnn"
 		run_command(inputs, "%s fix %s %s %s -o %s" % (inputs.cnvkit, targetCoverageTumor, antitargetCoverageTumor, outRef, cnr), error_msg)
