@@ -3,7 +3,7 @@ import sys, os, argparse
 import os.path, re
 import glob
 import ngs_classes
-from ngs_functions import print_log
+from ngs_functions import print_log, run_command
 ######################################################
 
 
@@ -168,7 +168,7 @@ def ngs_merge(inputs,targets_data,targets_data_processed):
 						ret_val = os.system("%s merge -l9 -t %d %s %s" % (inputs.sambamba,inputs.threads,merged_normal_bam_name,' '.join(sample_ids[s]["NORMAL"])))
 						if(ret_val >> 8 != 0): raise ngs_classes.ngsExcept("[ERROR:SAMBAMA] Failed to merge files %s" % (' '.join(sample_ids[s]["TUMOR"])))
 			targets_data_processed.append(ngs_classes.WxsSample(_id=s,_bamTumor = merged_tumor_bam_name,_bamNormal=merged_normal_bam_name))            
-	elif str.upper(inputs.workflow) == "GERMLINESNVINDEL":
+	elif str.upper(inputs.workflow) == "GERMLINESNVINDEL" or str.upper(inputs.workflow) == "RNASEQ":
 		sample_ids = {}
 		for r in targets_data:
 			if r._id in list(sample_ids.keys()):
