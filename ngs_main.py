@@ -438,13 +438,11 @@ if __name__ == '__main__':
 			ngs_clean(inputs)
 	else:
 		for s in targets_data_processed:
-			if(inputs.workflow == "GERMLINESNVINDEL"):
+			if(inputs.workflow == "GERMLINESNVINDEL" or inputs.workflow == "RNASEQ"):
 				s._bamCalib = s._bam
 			elif(inputs.workflow == "SOMATICSNVINDEL"):
 				s._bamCalibTumor = s._bamTumor
 				s._bamCalibNormal = s._bamNormal
-			elif(inputs.workflow == "RNASEQ"):
-				s._bamCalib = s._bam
 
 	if inputs.verbose: print_log(inputs, "[INFO] Preprocessing done.")
 	
