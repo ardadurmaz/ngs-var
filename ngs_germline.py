@@ -231,8 +231,11 @@ def ngs_cnvkit_germline(inputs, targets_data_processed):
 		files.append(s._bamCalib)
 	
 	outBed = runDir + 'access.bed'
-	targets = inputs.bed.split('.bed')[0] + '.target.bed'
-	antitargets = inputs.bed.split('.bed')[0] + '.antitarget.bed'
+	bedPathParts = inputs.bed.rsplit('/', 1)
+	dir, fileName = bedPathParts
+	localBed = dir + '/' + 'local.' + fileName
+	targets = localBed.split('.bed')[0] + '.target.bed'
+	antitargets = localBed.split('.bed')[0] + '.antitarget.bed'
 	targetCoverage = runDir + s._id + ".Normal" + ".targetcoverage.cnn"
 	antitargetCoverage = runDir + s._id + ".Normal" + ".antitargetcoverage.cnn"
 	outRef = runDir + 'flatReference.cnn'
@@ -240,12 +243,13 @@ def ngs_cnvkit_germline(inputs, targets_data_processed):
 	cns = runDir + s._id + ".Normal" + ".cns"
 	error_msg = "[ERROR:CNVKIT] Failed to run CNVkit configuration"
 
+	run_command(inputs, "%s target %s --split -o %s" % (inputs.cnvkit, inputs.bed, localBed), error_msg)
 	run_command(inputs, "%s access %s -o %s" % (inputs.cnvkit, inputs.reference, outBed), error_msg)
 
 	if inputs.exome:
-		run_command(inputs, "%s autobin %s -t %s -g %s" % (inputs.cnvkit, " ".join(files), inputs.bed, outBed), error_msg)
+		run_command(inputs, "%s autobin %s -t %s -g %s" % (inputs.cnvkit, " ".join(files), localBed, outBed), error_msg)
 	else:
-		run_command(inputs, "%s autobin %s -t %s -g %s -m wgs" % (inputs.cnvkit, " ".join(files), inputs.bed, outBed), error_msg)
+		run_command(inputs, "%s autobin %s -t %s -g %s -m wgs" % (inputs.cnvkit, " ".join(files), localBed, outBed), error_msg)
 
 	for s in targets_data_processed:
 		run_command(inputs, "%s coverage %s %s -o %s -p %d" % (inputs.cnvkit, s._bamCalib, targets, targetCoverage, inputs.threads), error_msg)
