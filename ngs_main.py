@@ -79,6 +79,14 @@ def read_targets(inputs):
 																  _plat = local[indx["Platform"]],
 																  _lib = local[indx["Library"]],
 																  _type = local[indx["Type"]]))
+							
+						elif(str.upper(inputs.workflow) == "RNASEQ"):
+							in_data.append(ngs_classes.WxsRNA(_r1 = local[indx["Read1"]],
+															  _r2 = local[indx["Read2"]],
+															  _lane = local[indx["Lane"]],
+															  _id = local[indx["ID"]],
+															  _plat = local[indx["Platform"]],
+															  _lib = local[indx["Library"]]))
 	finally:
 		fh.close()
 
@@ -112,6 +120,8 @@ def check_inputs(inputs):
 	## Check Aligner ##
     if inputs.aligner == 'BWA':
         if not(os.path.exists(inputs.bwa)): raise ngs_classes.ngsExcept("[ERROR:BWA] Not Available")
+    elif inputs.aligner == 'STAR':
+        if not(os.path.exists(inputs.star)): raise ngs_classes.ngsExcept("[ERROR:STAR] Not Available")
     else:
         raise ngs_classes.ngsExcept("[ERROR:ALIGNER] Name of the aligner does not match available tools")
 
@@ -132,6 +142,8 @@ def check_inputs(inputs):
         else:
             raise ngs_classes.ngsExcept("[ERROR:TOOL] Name of the caller tool does not match available tools")
             #if not(os.path.exists(inputs.cnvkit)): raise ngs_classes.ngsExcept("[ERROR] Failed to access Cnvkit")
+    elif inputs.workflow == 'RNASEQ':
+        pass
     else:
         raise ngs_classes.ngsExcept("[ERROR:WORKFLOW] Provided workflow is not available")
 	
@@ -183,6 +195,10 @@ def parse_config(config_file, inputs):
 				elif key == 'BWA':
 					inputs.bwa = val
 					if inputs.verbose: print_log(inputs, "[INFO] Parsed bwa resource")
+					config_count = config_count + 1
+				elif key == 'STAR':
+					inputs.star = val
+					if inputs.verbose: print_log(inputs, "[INFO] Parsed STAR resource")
 					config_count = config_count + 1
 				elif key == 'SAMTOOLS':
 					inputs.samtools = val
@@ -255,8 +271,8 @@ def get_inputs(inputs):
 	
 	parser.add_argument('--in_file',default='None',required=True,help='Targets file containing sample ids and associated fastq files')
 	parser.add_argument('--trimmer',default='cutadapt',required=False,help='Name of the trimmer <cutadapt|fastp|skewer>')
-	parser.add_argument('--aligner',default='bwa',help='Name of the aligner <bwa>')
-	parser.add_argument('--workflow',default='germlinesnvindel',help='Type of analysis to run <GermlineSNVIndel|SomaticSNVIndel>')
+	parser.add_argument('--aligner',default='bwa',help='Name of the aligner <bwa|STAR>')
+	parser.add_argument('--workflow',default='germlinesnvindel',help='Type of analysis to run <GermlineSNVIndel|SomaticSNVIndel|RNASeq>')
 	parser.add_argument('--tool',default='HaplotypeCaller',help='Name of the caller <HaplotypeCaller|Strelka2|MuTect2>')
 	
 	parser.add_argument('--bed',default=None,help='Bed file for regions')
@@ -427,6 +443,8 @@ if __name__ == '__main__':
 			elif(inputs.workflow == "SOMATICSNVINDEL"):
 				s._bamCalibTumor = s._bamTumor
 				s._bamCalibNormal = s._bamNormal
+			elif(inputs.workflow == "RNASEQ"):
+				s._bamCalib = s._bam
 
 	if inputs.verbose: print_log(inputs, "[INFO] Preprocessing done.")
 	
@@ -519,5 +537,9 @@ if __name__ == '__main__':
 			sys.exit(1)
 		finally:
 			ngs_clean(inputs)
+	
+	elif inputs.workflow == "RNASEQ":
+		
+		if inputs.verbose: print_log(inputs, "[INFO] RNASEQ Analysis")
 
 	sys.exit(0)
