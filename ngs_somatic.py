@@ -296,14 +296,19 @@ def ngs_cnvkit_somatic(inputs, targets_data_processed):
 			if not inputs.dry: os.system('%s index -t %d %s' % (inputs.sambamba, inputs.threads, s._bamCalibNormal))
 	
 	outBed = runDir + 'access.bed'
-	targets = inputs.bed.split('.bed')[0] + '.target.bed'
-	antitargets = inputs.bed.split('.bed')[0] + '.antitarget.bed'
+	bedPathParts = inputs.bed.rsplit('/', 1)
+	dir, fileName = bedPathParts
+	localBed = dir + '/' + 'local.' + fileName
+	targets = localBed.split('.bed')[0] + '.target.bed'
+	antitargets = localBed.split('.bed')[0] + '.antitarget.bed'
 	outRef = runDir + 'reference.cnn'
 	error_msg = "[ERROR:CNVKIT] Failed to run CNVkit configuration"
 	files = []
 	for s in targets_data_processed:
 		files.append(s._bamCalibNormal)
 		files.append(s._bamCalibTumor)
+
+	run_command(inputs, "%s target %s --split -o %s" % (inputs.cnvkit, inputs.bed, localBed), error_msg)
 	run_command(inputs, "%s access %s -o %s" % (inputs.cnvkit, inputs.reference, outBed), error_msg)
 	for s in targets_data_processed:
 
