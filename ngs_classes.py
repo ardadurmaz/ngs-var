@@ -15,6 +15,7 @@ class ngsInputs:
 	def __init__(self):
 		## Resources ##
 		self.bwa = ""
+		self.star = ""
 		self.cutadapt = ""
 		self.afterqc = ""
 		self.skewer = ""
@@ -22,6 +23,7 @@ class ngsInputs:
 		self.gatk = ""
 		self.reference = ""
 		self.knownsites = ""
+		self.annotation = ""
 		self.strelkabin = ""
 		self.mantabin = ""
 		self.cnvkit = ""
