@@ -25,6 +25,6 @@ def ngs_rna_align(inputs, targets_data):
     r2 = ",".join([s._trimmedR2 for s in targets_data])
     readFilesIn = " ".join([r1, r2])
     error_msg = "[ERROR] Failed to perform RNA alignment."
-    run_command(inputs, "%s --runThreadN %d --genomeDir %s --readFilesIn %s --outTmpDir %s" % (inputs.star, inputs.threads, runDir, readFilesIn, tempDir), error_msg)
+    run_command(inputs, "%s --runThreadN %d --genomeDir %s --readFilesIn %s --outTmpDir %s --readFilesCommand zcat" % (inputs.star, inputs.threads, runDir, readFilesIn, tempDir), error_msg)
 
     return 0
