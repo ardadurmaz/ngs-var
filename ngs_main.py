@@ -553,7 +553,7 @@ if __name__ == '__main__':
 			ngs_clean(inputs)
 			
 		try:
-			ngs_rna.ngs_rna_align(inputs,targets_data_processed)
+			ngs_rna.ngs_rna_align(inputs,targets_data)
 		except ngs_classes.ngsExcept as err:
 			print_log(inputs, err.msg)
 			sys.exit(1)
