@@ -7,7 +7,7 @@ import glob
 
 dir_path = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(dir_path)
-import ngs_classes, ngs_germline, ngs_somatic, ngs_preprocess
+import ngs_classes, ngs_germline, ngs_somatic, ngs_preprocess, ngs_rna
 from ngs_functions import print_log, run_command
 ######################################################
 	
@@ -235,6 +235,10 @@ def parse_config(config_file, inputs):
 				elif key == 'KNOWNSITES':
 					inputs.knownsites = val.split(",")
 					if inputs.verbose: print_log(inputs, "[INFO] Parsed knownsites resource")
+					config_count = config_count + 1
+				elif key == "ANNOTATION":
+					inputs.annotation = val
+					if inputs.verbose: print_log(inputs, "[INFO] Parsed annotation resource")
 					config_count = config_count + 1
 				elif key == 'CNVKIT':
 					inputs.cnvkit = val
@@ -539,5 +543,22 @@ if __name__ == '__main__':
 	elif inputs.workflow == "RNASEQ":
 		
 		if inputs.verbose: print_log(inputs, "[INFO] RNASEQ Analysis")
+
+		try:
+			ngs_rna.ngs_rna_index(inputs)
+		except ngs_classes.ngsExcept as err:
+			print_log(inputs, err.msg)
+			sys.exit(1)
+		finally:
+			ngs_clean(inputs)
+			
+		try:
+			ngs_rna.ngs_rna_align(inputs,targets_data_processed)
+		except ngs_classes.ngsExcept as err:
+			print_log(inputs, err.msg)
+			sys.exit(1)
+		finally:
+			ngs_clean(inputs)
+			
 
 	sys.exit(0)
