@@ -17,6 +17,15 @@ def ngs_index(inputs):
 			if not inputs.dry:
 				ret_val = os.system("%s index %s" % (inputs.bwa,inputs.reference))
 				if(ret_val >> 8 != 0): raise ngs_classes.ngsExcept("[ERROR:BWA] Failed to create fasta index")	
+	elif re.search("star", str.lower(inputs.aligner)):
+		print_log(inputs, "\n<---> RNA Indexing <--->\n")
+		runDir = os.path.abspath(inputs.dir + '/RNA_SEQ/')
+		error_msg = "[ERROR] Failed to perform RNA indexing."
+		if(os.path.exists(runDir + '/Genome')):
+			print_log(inputs, "[INFO] Indices found, skipping.")
+			return 0
+		else:
+			run_command(inputs, "%s --runThreadN %d --runMode genomeGenerate --genomeDir %s --genomeFastaFiles %s --sjdbGTFfile %s" % (inputs.star, inputs.threads, runDir, inputs.reference, inputs.annotation), error_msg)
 	return True
 
 def ngs_trim(inputs, targets_data):
@@ -103,23 +112,43 @@ def ngs_align(inputs, targets_data):
 						inputs.reference,r._trimmedR1,r._trimmedR2, inputs.threads, aligned_Name))
 					if(ret_val >> 8 != 0): raise ngs_classes.ngsExcept("[ERROR:BWA] Failed to align reads %s %s" % (r._trimmedR1, r._trimmedR2))
 			r._aligned = aligned_Name
-			
+	elif re.search('star', str.lower(inputs.aligner)):
+		print_log(inputs, "\n<---> RNA Alignment <--->\n") 
+		runDir = os.path.abspath(inputs.dir + '/RNA_SEQ/')
+		tempDir = "~/star_temp/"
+		
+		sample_reads = {}
+		for s in targets_data:
+			if s._id not in sample_reads:
+				sample_reads[s._id] = {'r1': [], 'r2': []}
+			sample_reads[s._id]['r1'].append(s._trimmedR1)
+			sample_reads[s._id]['r2'].append(s._trimmedR2)
+
+		for sample_id, reads in sample_reads.items():
+			sampleName = f"RNA_Seq_{sample_id}"
+			r1 = ",".join(reads['r1'])
+			r2 = ",".join(reads['r2'])
+			readFilesIn = " ".join([r1, r2])
+
+			error_msg = f"[ERROR] Failed to perform RNA alignment for sample {sample_id}."
+			run_command(inputs, "%s --runThreadN %d --genomeDir %s --readFilesIn %s --outTmpDir %s --readFilesCommand zcat --twopassMode Basic --quantMode TranscriptomeSAM --outSAMtype BAM Unsorted --outBAMcompression 10 --outFileNamePrefix %s" % (inputs.star, inputs.threads, runDir, readFilesIn, tempDir, sampleName), error_msg)
 	return True
 
 def ngs_mark_sort(inputs, targets_data):
-	for r in targets_data:
-		rmdup_Name = os.path.abspath(inputs.dir + '/bamProcessed/Rmdup_' + r._id + '_' + r._lib + '_' + r._lane + '.bam')
-		
-		if(os.path.exists(rmdup_Name)):
-			print_log(inputs, "[INFO] Processed bam files found, skipping.")
-		else:
-			## Remove Duplicates ##
-			if inputs.verbose: print_log(inputs, "[INFO:COMMAND] %s markdup --overflow-list-size=800000 --io-buffer-size=512 -l9 -p -t %d %s %s" % (inputs.sambamba,inputs.threads,r._aligned,rmdup_Name))
-			if not inputs.dry:
-				ret_val = os.system("%s markdup --overflow-list-size=800000 --io-buffer-size=512 -l9 -p -t %d %s %s" % (inputs.sambamba,inputs.threads,r._aligned,rmdup_Name)) ## 0 return code for success
-				if(ret_val >> 8 != 0): raise ngs_classes.ngsExcept("[ERROR:SAMBAMBA] Failed to mark&remove duplicates in .bam file %s" %(bam_Name))
+	if str.upper(inputs.workflow) != 'RNASEQ':
+		for r in targets_data:
+			rmdup_Name = os.path.abspath(inputs.dir + '/bamProcessed/Rmdup_' + r._id + '_' + r._lib + '_' + r._lane + '.bam')
 			
-		r._processed = rmdup_Name
+			if(os.path.exists(rmdup_Name)):
+				print_log(inputs, "[INFO] Processed bam files found, skipping.")
+			else:
+				## Remove Duplicates ##
+				if inputs.verbose: print_log(inputs, "[INFO:COMMAND] %s markdup --overflow-list-size=800000 --io-buffer-size=512 -l9 -p -t %d %s %s" % (inputs.sambamba,inputs.threads,r._aligned,rmdup_Name))
+				if not inputs.dry:
+					ret_val = os.system("%s markdup --overflow-list-size=800000 --io-buffer-size=512 -l9 -p -t %d %s %s" % (inputs.sambamba,inputs.threads,r._aligned,rmdup_Name)) ## 0 return code for success
+					if(ret_val >> 8 != 0): raise ngs_classes.ngsExcept("[ERROR:SAMBAMBA] Failed to mark&remove duplicates in .bam file %s" %(bam_Name))
+				
+			r._processed = rmdup_Name
 	
 	return True
 
