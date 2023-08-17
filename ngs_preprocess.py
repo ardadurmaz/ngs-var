@@ -112,7 +112,7 @@ def ngs_align(inputs, targets_data):
 						inputs.reference,r._trimmedR1,r._trimmedR2, inputs.threads, aligned_Name))
 					if(ret_val >> 8 != 0): raise ngs_classes.ngsExcept("[ERROR:BWA] Failed to align reads %s %s" % (r._trimmedR1, r._trimmedR2))
 			r._aligned = aligned_Name
-	elif re.search('star', str.lower(inputs.aligner)):
+	elif re.search("star", str.lower(inputs.aligner)):
 		print_log(inputs, "\n<---> RNA Alignment <--->\n") 
 		runDir = os.path.abspath(inputs.dir + '/RNA_SEQ/')
 		tempDir = "~/star_temp/"
