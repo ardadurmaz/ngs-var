@@ -18,6 +18,6 @@ def ngs_quantification(inputs):
         outFile = os.path.join(runDir, f"Quant_{sample_id}")
         
         error_msg = f"[ERROR] Failed to perform RNA quantification for sample {sample_id}."
-        run_command(inputs, "salmon quant --posBias --gcBias --seqBias --threads %d --libType ISR -t %s -a %s -o %s --numBootstraps 100" % (inputs.threads, inputs.reference, sample, outFile), error_msg)
+        run_command(inputs, "%s quant --posBias --gcBias --seqBias --threads %d --libType ISR -t %s -a %s -o %s --numBootstraps 100" % (inputs.salmon, inputs.threads, inputs.reference, runDir + "/" + sample, outFile), error_msg)
     
     return 0
