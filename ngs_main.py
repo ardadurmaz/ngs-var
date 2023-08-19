@@ -133,7 +133,6 @@ def check_inputs(inputs):
             elif not(os.path.exists(inputs.mantabin) or os.access(inputs.mantabin,os.R_OK)): raise ngs_classes.ngsExcept("[ERROR] Failed to access Manta directory")
         else:
             raise ngs_classes.ngsExcept("[ERROR:TOOL] Name of the caller tool does not match available tools")
-            #if not(os.path.exists(inputs.cnvkit)): raise ngs_classes.ngsExcept("[ERROR] Failed to access Cnvkit")
     elif inputs.workflow == 'SOMATICSNVINDEL':
         if(inputs.tool == 'MUTECT2'):
             if not(os.path.exists(inputs.gatk) or os.access(inputs.gatk,os.R_OK)): raise ngs_classes.ngsExcept("[ERROR] Failed to access GATK tool for MuTect2")
@@ -141,7 +140,6 @@ def check_inputs(inputs):
             if not(os.path.exists(inputs.strelkabin) or os.access(inputs.strelkabin,os.R_OK)): raise ngs_classes.ngsExcept("[ERROR] Failed to access Strelka2 directory")
         else:
             raise ngs_classes.ngsExcept("[ERROR:TOOL] Name of the caller tool does not match available tools")
-            #if not(os.path.exists(inputs.cnvkit)): raise ngs_classes.ngsExcept("[ERROR] Failed to access Cnvkit")
     elif inputs.workflow == 'RNASEQ':
         pass
     else:
