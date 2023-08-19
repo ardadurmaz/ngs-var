@@ -15,8 +15,8 @@ def ngs_clean(inputs):
 	
 	if not inputs.dry:
 		if inputs.upload:
-			if inputs.verbose: print_log(inputs, "[INFO:UPLOAD] sudo aws s3 sync %s s3://rnaseq-bucket/%s" % (inputs.dir, inputs.title))
-			os.system("aws s3 sync %s s3://rnaseq-bucket/%s" % (inputs.dir, inputs.title))
+			if inputs.verbose: print_log(inputs, f"[INFO:UPLOAD] sudo aws s3 sync {inputs.dir} s3://rnaseq-bucket/{inputs.title}")
+			os.system(f"aws s3 sync {inputs.dir} s3://rnaseq-bucket/{inputs.title}")
 	return 0
 
 def read_targets(inputs):
@@ -51,8 +51,9 @@ def read_targets(inputs):
 							_mixed = True
 					_header = False
 				else:
+					joined = "\t".join(local)
 					if len(list([x for x in local if re.search('^[^\s]+$', x)])) != len(indx):
-						print_log(inputs, '[WARNING:FORMAT] %s' % ("\t".join(local)))
+						print_log(inputs, f'[WARNING:FORMAT] {joined}')
 					else:
 						if(str.upper(inputs.workflow) == "GERMLINESNVINDEL"):
 							if not(_mixed):
@@ -95,7 +96,7 @@ def read_targets(inputs):
 			print_log(inputs, "\n    *** Run Info ***")
 			for arg, val in vars(r).items():
 				if val:
-					print_log(inputs, "  [%s --> %s]" % (arg, val))
+					print_log(inputs, f"  [{arg} --> {val}]")
 		print_log(inputs, "\n\n")    
 
 	return in_data
@@ -151,7 +152,7 @@ def check_inputs(inputs):
 	## Check Known Sites ##
     if(inputs.bqsr):
         for knownSite in inputs.knownsites:
-            if not(os.path.exists(os.path.abspath(knownSite)) or os.access(knownSite, os.R_OK)): raise ngs_classes.ngsExcept("[ERROR] Failed to access resource %s" % (knownSite))
+            if not(os.path.exists(os.path.abspath(knownSite)) or os.access(knownSite, os.R_OK)): raise ngs_classes.ngsExcept(f"[ERROR] Failed to access resource {knownSite}")
 
 	## Create Working Dir ##
     try:
@@ -252,7 +253,7 @@ def parse_config(config_file, inputs):
 		fh.close()
 	
 	if(config_count > 0):
-		if inputs.verbose: print_log(inputs, "[INFO] Processed %d value pairs in configuration file" % (config_count))
+		if inputs.verbose: print_log(inputs, f"[INFO] Processed {config_count} value pairs in configuration file")
 		return 0
 	else:
 		raise ngs_classes.ngsExcept("[ERROR] Failed to parse .config file")
@@ -322,9 +323,9 @@ def get_inputs(inputs):
 		for key, val in vars(inputs).items():
 			if(key == 'knownsites'):
 				for site in val:
-					print_log(inputs, "\/ %s: %s" % ("KnownSite", site))
+					print_log(inputs, f"\\/ KnownSite: {site}")
 			else:
-				print_log(inputs, "\/ %s: %s" % (key, val))
+				print_log(inputs, f"\\/ {key}: {val}")
 
 		print_log(inputs, "\/" * 40)
 		print_log(inputs, "\n")
@@ -336,7 +337,7 @@ def prep_wd(inputs):
 	if inputs.clear:
 		for l_dir in ['readsTrimmed', 'readsAligned' ,'bamProcessed', 'bamMerged', 'recalib', 'bamCalib']:
 			ll_dir = inputs.dir + '/' + l_dir
-			if os.path.exists(ll_dir): os.system("rm -ir %s" % (ll_dir))
+			if os.path.exists(ll_dir): os.system(f"rm -ir {ll_dir}")
 
 	for l_dir in ['readsTrimmed', 'readsAligned' ,'bamProcessed', 'bamMerged', 'recalib', 'bamCalib']:
 		ll_dir = inputs.dir + '/' + l_dir
@@ -344,7 +345,7 @@ def prep_wd(inputs):
 			try:
 				os.makedirs(ll_dir)
 			except OSError:
-				raise ngs_classes.ngsExcept("[ERROR] Failed to create directory %s" % (ll_dir))
+				raise ngs_classes.ngsExcept(f"[ERROR] Failed to create directory {ll_dir}")
 			
 	return 0
 
