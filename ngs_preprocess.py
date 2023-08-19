@@ -208,7 +208,7 @@ def bqsr(inputs, targets_data_processed):
 				print_log(inputs, "[INFO] Recalibration tables found, skipping.")
 			else:
 				recalib_commands = []
-				if not inputs.bed is None:
+				if inputs.bed:
 					recalib_commands.append(f"java -jar {inputs.gatk} -T BaseRecalibrator -nct {inputs.threads} -R {inputs.reference} -I {s._bamTumor} -knownSites {' -knownSites '.join(inputs.knownsites)} -o {tumorRecalibTable} -L {inputs.bed}")
 				else:
 					recalib_commands.append(f"java -jar {inputs.gatk} -T BaseRecalibrator -nct {inputs.threads} -R {inputs.reference} -I {s._bamTumor} -knownSites {' -knownSites '.join(inputs.knownsites)} -o {tumorRecalibTable}")
@@ -225,7 +225,7 @@ def bqsr(inputs, targets_data_processed):
 				print_log(inputs, "[INFO] Recalibration table found, skipping.")
 			else:
 				recalib_command = ""
-				if not inputs.bed is None:
+				if inputs.bed:
 					recalib_command = f"java -jar {inputs.gatk} -T BaseRecalibrator -nct {inputs.threads} -R {inputs.reference} -I {s._bam} -knownSites {' -knownSites '.join(inputs.knownsites)} -o {RecalibTable} -L {inputs.bed}"
 				else:
 					recalib_command = f"java -jar {inputs.gatk} -T BaseRecalibrator -nct {inputs.threads} -R {inputs.reference} -I {s._bam} -knownSites {' -knownSites '.join(inputs.knownsites)} -o {RecalibTable}"
