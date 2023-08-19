@@ -23,8 +23,8 @@ def ngs_quantification(inputs):
     for sample in aligned:
         sample_id = sample.split('Aligned.toTranscriptome.out.bam')[0] 
         outFile = os.path.join(runDir, f"Quant_{sample_id}")
-        
+        samplePath = runDir + "/" + sample
         error_msg = f"[ERROR] Failed to perform RNA quantification for sample {sample_id}."
-        run_command(inputs, "%s quant --posBias --gcBias --seqBias --threads %d --libType ISR -t %s -a %s -o %s --numBootstraps 100" % (inputs.salmon, inputs.threads, inputs.reference, runDir + "/" + sample, outFile), error_msg)
+        run_command(inputs, f"{inputs.salmon} quant --posBias --gcBias --seqBias --threads {inputs.threads} --libType ISR -t {inputs.reference} -a {samplePath} -o {outFile} --numBootstraps 100", error_msg)
     
     return 0
