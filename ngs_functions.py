@@ -16,7 +16,7 @@ def print_log(inputs, text):
     with open(inputs.log, 'a') as f:
         f.write("\n" + text)
 
-def run_command(inputs, command, error_msg):
+def run_command(inputs, command, error_msg = "Failed"):
     if inputs.verbose:
         print_log(inputs, f"[INFO:COMMAND] {command}")
     if not inputs.dry:
