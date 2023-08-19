@@ -25,8 +25,7 @@ def ngs_haplotypecaller(inputs, targets_data_processed):
 		if(len(glob.glob(os.path.abspath(s._bamCalib + '.bai'))) > 0):
 			print_log(inputs, "[INFO] Indices found, skipping.")
 		else:
-			if inputs.verbose: print_log(inputs, '[INFO:COMMAND] %s index -t %d %s' % (inputs.sambamba, inputs.threads, s._bamCalib))
-			if not inputs.dry: os.system('%s index -t %d %s' % (inputs.sambamba, inputs.threads, s._bamCalib))
+			run_command(inputs, '%s index -t %d %s' % (inputs.sambamba, inputs.threads, s._bamCalib))
 
 	for s in targets_data_processed:
 		outFile = runDir + f'/{s._id}.raw.snps.indels.vcf'
@@ -37,19 +36,11 @@ def ngs_haplotypecaller(inputs, targets_data_processed):
 			if inputs.verbose: print_log(inputs, f"[INFO] HaplotypeCaller raw file found for sample {s._id}, skipping.")
 			return 0
 		else:		
-			if inputs.verbose:
-				print_log(inputs, "[INFO:COMMAND] java -Xmx8g -jar %s HaplotypeCaller --native-pair-hmm-threads %d -ERC GVCF -R %s -I %s "\
+			run_command(inputs, "java -Xmx8g -jar %s HaplotypeCaller --native-pair-hmm-threads %d -ERC GVCF -R %s -I %s "\
 				"--sample-name %s "\
 				"-stand-call-conf 10 -O %s "\
 				"-A BaseQualityRankSumTest -A Coverage -A DepthPerAlleleBySample "\
-				"-A FisherStrand -A QualByDepth -A ReadPosRankSumTest" % (inputs.gatk, inputs.threads, inputs.reference, inFile, sampleName, outFile))
-			if not inputs.dry:
-				ret_val = os.system("java -Xmx8g -jar %s HaplotypeCaller --native-pair-hmm-threads %d -ERC GVCF -R %s -I %s "\
-				"--sample-name %s "\
-				"-stand-call-conf 10 -O %s "\
-				"-A BaseQualityRankSumTest -A Coverage -A DepthPerAlleleBySample "\
-				"-A FisherStrand -A QualByDepth -A ReadPosRankSumTest" % (inputs.gatk, inputs.threads, inputs.reference, inFile, sampleName, outFile))
-				if(ret_val >> 8 != 0): raise ngs_classes.ngsExcept(f"[ERROR:HaplotypeCaller] Failed to call germline variants for sample {s._id}")
+				"-A FisherStrand -A QualByDepth -A ReadPosRankSumTest" % (inputs.gatk, inputs.threads, inputs.reference, inFile, sampleName, outFile), f"[ERROR:HaplotypeCaller] Failed to call germline variants for sample {s._id}")
 	
 	print_log(inputs, "\n<---> Done <--->\n")
 	return 0
@@ -66,13 +57,8 @@ def ngs_haplotypecaller_combine(inputs, targets_data_processed):
 		if inputs.verbose: print_log(inputs, "[INFO] Skipping")
 		return 0
 	else:
-		if inputs.verbose:
-			print_log(inputs, "[INFO:COMMAND] java -Xmx8g -jar %s CombineGVCFs -R %s --variant %s -O %s" % \
-		       (inputs.gatk, inputs.reference, inFile, outFile))
-		if not inputs.dry:
-			ret_val = os.system("java -Xmx8g -jar %s CombineGVCFs -R %s --variant %s -O %s" % \
-		       (inputs.gatk, inputs.reference, inFile, outFile))
-			if(ret_val >> 8 != 0): raise ngs_classes.ngsExcept("[ERROR:CombineGVCFs] Failed to combine GVCFs")
+		run_command(inputs, "java -Xmx8g -jar %s CombineGVCFs -R %s --variant %s -O %s" % \
+		       (inputs.gatk, inputs.reference, inFile, outFile), "[ERROR:CombineGVCFs] Failed to combine GVCFs")
 
 	print_log(inputs, "\n<---> Done <--->\n")
 	return 0
@@ -88,13 +74,8 @@ def ngs_haplotypecaller_genotype(inputs):
         if inputs.verbose: print_log(inputs, "[INFO] Skipping")
         return 0
     else:
-        if inputs.verbose:
-            print_log(inputs, "java -Xmx8g -jar %s GenotypeGVCFs -R %s -V %s -O %s -A BaseQualityRankSumTest -A MappingQualityRankSumTest -A FisherStrand -A QualByDepth -A ReadPosRankSumTest -A RMSMappingQuality -A StrandOddsRatio -A DepthPerAlleleBySample -A Coverage -ip 100" % \
-                (inputs.gatk, inputs.reference, inFile, outFile))
-        if not inputs.dry:
-            ret_val = os.system("java -Xmx8g -jar %s GenotypeGVCFs -R %s -V %s -O %s -A BaseQualityRankSumTest -A MappingQualityRankSumTest -A FisherStrand -A QualByDepth -A ReadPosRankSumTest -A RMSMappingQuality -A StrandOddsRatio -A DepthPerAlleleBySample -A Coverage -ip 100" % \
-                (inputs.gatk, inputs.reference, inFile, outFile))
-            if(ret_val >> 8 != 0): raise ngs_classes.ngsExcept("[ERROR:GenotypeGVCFs] Failed to perform joint genotyping")
+        run_command(inputs, "java -Xmx8g -jar %s GenotypeGVCFs -R %s -V %s -O %s -A BaseQualityRankSumTest -A MappingQualityRankSumTest -A FisherStrand -A QualByDepth -A ReadPosRankSumTest -A RMSMappingQuality -A StrandOddsRatio -A DepthPerAlleleBySample -A Coverage -ip 100" % \
+                (inputs.gatk, inputs.reference, inFile, outFile), "[ERROR:GenotypeGVCFs] Failed to perform joint genotyping")
     print_log(inputs, "\n<---> Done <--->\n")
     return 0
 
@@ -121,12 +102,7 @@ def ngs_haplotypecaller_filter(inputs):
     ]
 
     for command in commands:
-        if inputs.verbose:
-            print_log(inputs, "[INFO:COMMAND] %s" % command) 
-        if not inputs.dry:
-            ret_val = os.system(command)
-            if(ret_val >> 8 != 0): 
-                raise ngs_classes.ngsExcept("[ERROR:VariantFiltration] Failed to process command: %s" % command)
+        run_command(inputs, command, "[ERROR:VariantFiltration] Failed to process command: %s" % command)
         
     print_log(inputs, "\n<---> Done <--->\n")
     return 0
@@ -151,8 +127,7 @@ def ngs_strelka_germline(inputs, targets_data_processed):
 		if(len(glob.glob(os.path.abspath(s._bamCalib + '.bai'))) > 0):
 			print_log(inputs, "[INFO] Indices found, skipping.")
 		else:
-			if inputs.verbose: print_log(inputs, '[INFO:COMMAND] %s index -t %d %s' % (inputs.sambamba, inputs.threads, s._bamCalib))
-			if not inputs.dry: os.system('%s index -t %d %s' % (inputs.sambamba, inputs.threads, s._bamCalib))
+			run_command(inputs, '%s index -t %d %s' % (inputs.sambamba, inputs.threads, s._bamCalib))
 	
 	files = []
 	for s in targets_data_processed:
@@ -160,46 +135,25 @@ def ngs_strelka_germline(inputs, targets_data_processed):
 	inFile = " --bam ".join(files)
 	
 	## Configure ##
-	if(os.path.exists(runDir + '/results')):
-		if inputs.verbose: "[INFO] Strelka germline results found, skipping."
-		return 0
-	else:
-		if inputs.exome:
-			if inputs.verbose:
-				if not(inputs.cbed is None):
-					print_log(inputs, "[INFO:COMMAND] python2.7 %s --referenceFasta %s --exome --runDir %s --callRegions %s --bam %s" % (runWork,inputs.reference,runDir,inputs.cbed,inFile))
-				else:
-					print_log(inputs, "[INFO:COMMAND] python2.7 %s --referenceFasta %s --exome --runDir %s --bam %s" % (runWork,inputs.reference,runDir,inFile))
-			if not inputs.dry:
-				if not(inputs.cbed is None):
-					ret_val = os.system("python2.7 %s --referenceFasta %s --exome --runDir %s --callRegions %s --bam %s" % (runWork,inputs.reference,runDir,inputs.cbed,inFile))
-					if(ret_val >> 8 != 0): raise ngs_classes.ngsExcept("[ERROR:STRELKA] Failed to configure strelka2 run")
-				else:
-					ret_val = os.system("python2.7 %s --referenceFasta %s --exome --runDir %s --bam %s" % (runWork,inputs.reference,runDir,inFile))
-					if(ret_val >> 8 != 0): raise ngs_classes.ngsExcept("[ERROR:STRELKA] Failed to configure strelka2 run")
-				
-		else:
-			if inputs.verbose:
-				if not(inputs.cbed is None):
-					print_log(inputs, "[INFO:COMMAND] python2.7 %s --referenceFasta %s --runDir %s --callRegions %s --bam %s" % (runWork,inputs.reference,runDir,inputs.cbed,inFile))
-				else:
-					print_log(inputs, "[INFO:COMMAND] python2.7 %s --referenceFasta %s --runDir %s --bam %s" % (runWork,inputs.reference,runDir,inFile))
-				
-			if not inputs.dry:
-				if not(inputs.cbed is None):
-					ret_val = os.system("python2.7 %s --referenceFasta %s --runDir %s --callRegions %s --bam %s" % (runWork,inputs.reference,runDir,inputs.cbed,inFile))
-					if(ret_val >> 8 != 0): raise ngs_classes.ngsExcept("[ERROR:STRELKA] Failed to configure strelka2 run")
-				else:
-					ret_val = os.system("python2.7 %s --referenceFasta %s --runDir %s --bam %s" % (runWork,inputs.reference,runDir,inFile))
-					if(ret_val >> 8 != 0): raise ngs_classes.ngsExcept("[ERROR:STRELKA] Failed to configure strelka2 run")
-	
-	
-		## Run ##
+	if os.path.exists(runDir + '/results'):
 		if inputs.verbose:
-			print_log(inputs, "[INFO:COMMAND] python2.7 %s -m local -j %d" % (runDir + '/runWorkflow.py',inputs.threads))
-		if not inputs.dry:
-			ret_val = os.system("python2.7 %s -m local -j %d" % (runDir + '/runWorkflow.py', inputs.threads))
-			if(ret_val >> 8 != 0): raise ngs_classes.ngsExcept("[ERROR:STRELKA] Failed to run strelka2 configuration")
+			print("[INFO] Strelka germline results found, skipping.")
+		return 0
+	
+	base_command = f"python2.7 {runWork} --referenceFasta {inputs.reference} --runDir {runDir} --bam {inFile}"
+	if inputs.exome:
+		base_command += " --exome"
+	if inputs.cbed is not None:
+		base_command += f" --callRegions {inputs.cbed}"
+
+	error_msg = "[ERROR:STRELKA] Failed to configure strelka2 run"
+	run_command(inputs, base_command, error_msg)
+
+	## Run ##
+	run_workflow_command = f"python2.7 {runDir}/runWorkflow.py -m local -j {inputs.threads}"
+	error_msg_run = "[ERROR:STRELKA] Failed to run strelka2 configuration"
+	run_command(inputs, run_workflow_command, error_msg_run)
+
 		
 	print_log(inputs, "\n<---> Done <--->\n")
 
@@ -223,8 +177,7 @@ def ngs_cnvkit_germline(inputs, targets_data_processed):
 		if(len(glob.glob(os.path.abspath(s._bamCalib + '.bai'))) > 0):
 			print_log(inputs, "[INFO] Indices found, skipping.")
 		else:
-			if inputs.verbose: print_log(inputs, '[INFO:COMMAND] %s index -t %d %s' % (inputs.sambamba, inputs.threads, s._bamCalib))
-			if not inputs.dry: os.system('%s index -t %d %s' % (inputs.sambamba, inputs.threads, s._bamCalib))
+			run_command(inputs, '%s index -t %d %s' % (inputs.sambamba, inputs.threads, s._bamCalib))
 	
 	files = []
 	for s in targets_data_processed:
