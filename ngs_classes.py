@@ -28,6 +28,7 @@ class ngsInputs:
 		self.mantabin = ""
 		self.cnvkit = ""
 		self.rscript = ""
+		self.salmon = ""
 		
 		## Arguments ##
 		self.dir = ""
@@ -84,19 +85,19 @@ class WxsSomatic:
         self._markedM = None
 
 class WxsGermline:
-        def __init__(self, _r1 = None, _r2 = None, _lane = None, _id = None, _plat = None, _lib = None):
-            self._r1 = _r1
-            self._r2 = _r2
-            self._lane = _lane
-            self._id = _id
-            self._plat = _plat
-            self._lib = _lib
-            self._trimmedR1 = None
-            self._trimmedR2 = None
-            self._aligned = None
-            self._sorted = None
-            self._marked = None
-            self._markedM = None
+    def __init__(self, _r1 = None, _r2 = None, _lane = None, _id = None, _plat = None, _lib = None):
+        self._r1 = _r1
+        self._r2 = _r2
+        self._lane = _lane
+        self._id = _id
+        self._plat = _plat
+        self._lib = _lib
+        self._trimmedR1 = None
+        self._trimmedR2 = None
+        self._aligned = None
+        self._sorted = None
+        self._marked = None
+        self._markedM = None
 
 class WxsRNA:
     def __init__(self, _r1=None, _r2=None, _lane=None, _id=None, _plat=None, _lib=None):
