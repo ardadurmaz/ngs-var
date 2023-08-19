@@ -303,7 +303,7 @@ def get_inputs(inputs):
 	inputs.upload = args.upload
 	
 	inputs.in_file = args.in_file
-	inputs.trimmer = str.upper(args.trimmer) if not args.trimmer is None else None
+	inputs.trimmer = str.upper(args.trimmer) if args.trimmer else None
 	inputs.aligner = str.upper(args.aligner)
 	inputs.workflow = str.upper(args.workflow)
 	inputs.tool = str.upper(args.tool)
