@@ -10,6 +10,13 @@ def ngs_quantification(inputs):
 
     print_log(inputs, "\n<---> RNA Quantification <--->\n")
     runDir = os.path.abspath(inputs.dir + '/RNA_SEQ/')
+    if os.path.exists(runDir):
+        print_log(inputs, "[INFO] RNASeq directory found, skipping.")
+    else:
+        try:
+            os.mkdir(runDir)
+        except OSError:
+            raise ngs_classes.ngsExcept(f"[ERROR] Failed to create directory {runDir}")
 
     aligned = [f for f in os.listdir(runDir) if f.endswith('Aligned.toTranscriptome.out.bam')]
     
