@@ -14,18 +14,18 @@ def ngs_haplotypecaller(inputs, targets_data_processed):
 	if(os.path.exists(runDir)):
 		if inputs.verbose: print_log(inputs, "[INFO] HaplotypeCaller directory found")
 	else:
-		if inputs.verbose: print_log(inputs, "[INFO] Creating HaplotypeCaller directory: %s" % (runDir))
+		if inputs.verbose: print_log(inputs, f"[INFO] Creating HaplotypeCaller directory: {runDir}")
 		try:
 			os.mkdir(runDir)
 		except OSError:
-			raise ngs_classes.ngsExcept("[ERROR] Failed to create HaplotypeCaller directory %s" % (runDir))
+			raise ngs_classes.ngsExcept(f"[ERROR] Failed to create HaplotypeCaller directory {runDir}")
 	
 	## Index ##
 	for s in targets_data_processed:
 		if(len(glob.glob(os.path.abspath(s._bamCalib + '.bai'))) > 0):
 			print_log(inputs, "[INFO] Indices found, skipping.")
 		else:
-			run_command(inputs, '%s index -t %d %s' % (inputs.sambamba, inputs.threads, s._bamCalib))
+			run_command(inputs, f"{inputs.sambaba} index -t {inputs.threads} {s._bamCalib}")
 
 	for s in targets_data_processed:
 		outFile = runDir + f'/{s._id}.raw.snps.indels.vcf'
@@ -36,11 +36,11 @@ def ngs_haplotypecaller(inputs, targets_data_processed):
 			if inputs.verbose: print_log(inputs, f"[INFO] HaplotypeCaller raw file found for sample {s._id}, skipping.")
 			return 0
 		else:		
-			run_command(inputs, "java -Xmx8g -jar %s HaplotypeCaller --native-pair-hmm-threads %d -ERC GVCF -R %s -I %s "\
-				"--sample-name %s "\
-				"-stand-call-conf 10 -O %s "\
+			run_command(inputs, f"java -Xmx8g -jar {inputs.gatk} HaplotypeCaller --native-pair-hmm-threads {inputs.threads} -ERC GVCF -R {inputs.reference} -I {inFile} "\
+				f"--sample-name {sampleName} "\
+				f"-stand-call-conf 10 -O {outFile} "\
 				"-A BaseQualityRankSumTest -A Coverage -A DepthPerAlleleBySample "\
-				"-A FisherStrand -A QualByDepth -A ReadPosRankSumTest" % (inputs.gatk, inputs.threads, inputs.reference, inFile, sampleName, outFile), f"[ERROR:HaplotypeCaller] Failed to call germline variants for sample {s._id}")
+				"-A FisherStrand -A QualByDepth -A ReadPosRankSumTest", f"[ERROR:HaplotypeCaller] Failed to call germline variants for sample {s._id}")
 	
 	print_log(inputs, "\n<---> Done <--->\n")
 	return 0
@@ -57,8 +57,7 @@ def ngs_haplotypecaller_combine(inputs, targets_data_processed):
 		if inputs.verbose: print_log(inputs, "[INFO] Skipping")
 		return 0
 	else:
-		run_command(inputs, "java -Xmx8g -jar %s CombineGVCFs -R %s --variant %s -O %s" % \
-		       (inputs.gatk, inputs.reference, inFile, outFile), "[ERROR:CombineGVCFs] Failed to combine GVCFs")
+		run_command(inputs, f"java -Xmx8g -jar {inputs.gatk} CombineGVCFs -R {inputs.reference} --variant {inFile} -O {outFile}", "[ERROR:CombineGVCFs] Failed to combine GVCFs")
 
 	print_log(inputs, "\n<---> Done <--->\n")
 	return 0
@@ -74,8 +73,7 @@ def ngs_haplotypecaller_genotype(inputs):
         if inputs.verbose: print_log(inputs, "[INFO] Skipping")
         return 0
     else:
-        run_command(inputs, "java -Xmx8g -jar %s GenotypeGVCFs -R %s -V %s -O %s -A BaseQualityRankSumTest -A MappingQualityRankSumTest -A FisherStrand -A QualByDepth -A ReadPosRankSumTest -A RMSMappingQuality -A StrandOddsRatio -A DepthPerAlleleBySample -A Coverage -ip 100" % \
-                (inputs.gatk, inputs.reference, inFile, outFile), "[ERROR:GenotypeGVCFs] Failed to perform joint genotyping")
+        run_command(inputs, f"java -Xmx8g -jar {inputs.gatk} GenotypeGVCFs -R {inputs.reference} -V {inFile} -O {outFile} -A BaseQualityRankSumTest -A MappingQualityRankSumTest -A FisherStrand -A QualByDepth -A ReadPosRankSumTest -A RMSMappingQuality -A StrandOddsRatio -A DepthPerAlleleBySample -A Coverage -ip 100", "[ERROR:GenotypeGVCFs] Failed to perform joint genotyping")
     print_log(inputs, "\n<---> Done <--->\n")
     return 0
 
@@ -92,17 +90,17 @@ def ngs_haplotypecaller_filter(inputs):
     mainOutFile = runDir + '/filt.gatk.calls.vcf'
     
     commands = [
-        "java -Xmx8g -jar %s LeftAlignAndTrimVariants -R %s -V %s -O %s --split-multi-allelics" % (inputs.gatk, inputs.reference, inFile, normFile),
-        "java -Xmx8g -jar %s SelectVariants -R %s -V %s -O %s --exclude-non-variants --select-type-to-include \"SNP\"" % (inputs.gatk, inputs.reference, normFile, snpFile),
-        "java -Xmx8g -jar %s SelectVariants -R %s -V %s -O %s --exclude-non-variants --select-type-to-include \"INDEL\"" % (inputs.gatk, inputs.reference, normFile, indelFile),
-        "java -Xmx8g -jar %s VariantFiltration -R %s -V %s -O %s --filter-expression \"QD < 2.0\" --filter-name \"LowQD\" --filter-expression \"QUAL < 30.0\" --filter-name \"QUAL30\" --filter-expression 'FS > 60.0 && SOR > 9.0' --filter-name 'HighSBSNP' --filter-expression 'MQ < 40.0' --filter-name \"LowMQSNP\" --filter-expression 'ReadPosRankSum < -8.0' --filter-name \"LowRPRSSNP\" --genotype-filter-expression \"GQ < 30.0\" --genotype-filter-name \"GQ\" --genotype-filter-expression \"DP < 10.0\" --genotype-filter-name \"LowDPGT\"" % (inputs.gatk, inputs.reference, snpFile, filtSnpFile),
-        "java -Xmx8g -jar %s VariantFiltration -R %s -V %s -O %s --filter-expression \"QD < 2.0\" --filter-name \"LowQD\" --filter-expression \"QUAL < 30.0\" --filter-name \"QUAL30\" --filter-expression 'FS > 200.0 && SOR > 9.0' --filter-name \"HighSBINDEL\" --filter-expression 'ReadPosRankSum < -20.0' --filter-name \"LowRPRSINDEL\" --genotype-filter-expression \"GQ < 30.0\" --genotype-filter-name \"GQ\" --genotype-filter-expression \"DP < 10.0\" --genotype-filter-name \"LowDPGT\"" % (inputs.gatk, inputs.reference, indelFile, filtIndelFile),
-        "java -Xmx8g -jar %s MergeVcfs -I %s -I %s -O %s" % (inputs.gatk, filtSnpFile, filtIndelFile, mergedFile),
-        "java -Xmx8g -jar %s SelectVariants -R %s -V %s -O %s --exclude-non-variants --exclude-filtered --select-type-to-include \"SNP\" --select-type-to-include \"INDEL\"" % (inputs.gatk, inputs.reference, mergedFile, mainOutFile)
+        f"java -Xmx8g -jar {inputs.gatk} LeftAlignAndTrimVariants -R {inputs.reference} -V {inFile} -O {normFile} --split-multi-allelics",
+        f"java -Xmx8g -jar {inputs.gatk} SelectVariants -R {inputs.reference} -V {normFile} -O {snpFile} --exclude-non-variants --select-type-to-include \"SNP\"",
+        f"java -Xmx8g -jar {inputs.gatk} SelectVariants -R {inputs.reference} -V {normFile} -O {indelFile} --exclude-non-variants --select-type-to-include \"INDEL\"",
+        f"java -Xmx8g -jar {inputs.gatk} VariantFiltration -R {inputs.reference} -V {snpFile} -O {filtSnpFile} --filter-expression \"QD < 2.0\" --filter-name \"LowQD\" --filter-expression \"QUAL < 30.0\" --filter-name \"QUAL30\" --filter-expression 'FS > 60.0 && SOR > 9.0' --filter-name 'HighSBSNP' --filter-expression 'MQ < 40.0' --filter-name \"LowMQSNP\" --filter-expression 'ReadPosRankSum < -8.0' --filter-name \"LowRPRSSNP\" --genotype-filter-expression \"GQ < 30.0\" --genotype-filter-name \"GQ\" --genotype-filter-expression \"DP < 10.0\" --genotype-filter-name \"LowDPGT\"",
+        f"java -Xmx8g -jar {inputs.gatk} VariantFiltration -R {inputs.reference} -V {indelFile} -O {filtIndelFile} --filter-expression \"QD < 2.0\" --filter-name \"LowQD\" --filter-expression \"QUAL < 30.0\" --filter-name \"QUAL30\" --filter-expression 'FS > 200.0 && SOR > 9.0' --filter-name \"HighSBINDEL\" --filter-expression 'ReadPosRankSum < -20.0' --filter-name \"LowRPRSINDEL\" --genotype-filter-expression \"GQ < 30.0\" --genotype-filter-name \"GQ\" --genotype-filter-expression \"DP < 10.0\" --genotype-filter-name \"LowDPGT\"",
+        f"java -Xmx8g -jar {inputs.gatk} MergeVcfs -I {filtSnpFile} -I {filtIndelFile} -O {mergedFile}",
+        f"java -Xmx8g -jar {inputs.gatk} SelectVariants -R {inputs.reference} -V {mergedFile} -O {mainOutFile} --exclude-non-variants --exclude-filtered --select-type-to-include \"SNP\" --select-type-to-include \"INDEL\""
     ]
 
     for command in commands:
-        run_command(inputs, command, "[ERROR:VariantFiltration] Failed to process command: %s" % command)
+        run_command(inputs, command, f"[ERROR:VariantFiltration] Failed to process command: {command}")
         
     print_log(inputs, "\n<---> Done <--->\n")
     return 0
@@ -120,14 +118,14 @@ def ngs_strelka_germline(inputs, targets_data_processed):
 		try:
 			os.mkdir(runDir)
 		except OSError:
-			raise ngs_classes.ngsExcept("[ERROR] Failed to create HaplotypeCaller directory %s" % (runDir))
+			raise ngs_classes.ngsExcept(f"[ERROR] Failed to create HaplotypeCaller directory {runDir}")
 
 	## Index Bam Files ##
 	for s in targets_data_processed:
 		if(len(glob.glob(os.path.abspath(s._bamCalib + '.bai'))) > 0):
 			print_log(inputs, "[INFO] Indices found, skipping.")
 		else:
-			run_command(inputs, '%s index -t %d %s' % (inputs.sambamba, inputs.threads, s._bamCalib))
+			run_command(inputs, f'{inputs.sambaba} index -t {inputs.threads} {s._bamCalib}')
 	
 	files = []
 	for s in targets_data_processed:
@@ -170,14 +168,14 @@ def ngs_cnvkit_germline(inputs, targets_data_processed):
 		try:
 			os.mkdir(runDir)
 		except OSError:
-			raise ngs_classes.ngsExcept("[ERROR] Failed to create directory %s" % (runDir))
+			raise ngs_classes.ngsExcept(f"[ERROR] Failed to create directory {runDir}")
 
 	## Index Bam Files ##
 	for s in targets_data_processed:
 		if(len(glob.glob(os.path.abspath(s._bamCalib + '.bai'))) > 0):
 			print_log(inputs, "[INFO] Indices found, skipping.")
 		else:
-			run_command(inputs, '%s index -t %d %s' % (inputs.sambamba, inputs.threads, s._bamCalib))
+			run_command(inputs, f'{inputs.sambaba} index -t {inputs.threads} {s._bamCalib}')
 	
 	files = []
 	for s in targets_data_processed:
@@ -196,20 +194,20 @@ def ngs_cnvkit_germline(inputs, targets_data_processed):
 	cns = runDir + s._id + ".Normal" + ".cns"
 	error_msg = "[ERROR:CNVKIT] Failed to run CNVkit configuration"
 
-	run_command(inputs, "%s target %s --split -o %s" % (inputs.cnvkit, inputs.bed, localBed), error_msg)
-	run_command(inputs, "%s access %s -o %s" % (inputs.cnvkit, inputs.reference, outBed), error_msg)
+	run_command(inputs, f"{inputs.cnvkit} target {inputs.bed} --split -o {localBed}", error_msg)
+	run_command(inputs, f"{inputs.cnvkit} access {inputs.reference} -o {outBed}", error_msg)
 
 	if inputs.exome:
-		run_command(inputs, "%s autobin %s -t %s -g %s" % (inputs.cnvkit, " ".join(files), localBed, outBed), error_msg)
+		run_command(inputs, f"{inputs.cnvkit} autobin {' '.join(files)} -t {localBed} -g {outBed}", error_msg)
 	else:
-		run_command(inputs, "%s autobin %s -t %s -g %s -m wgs" % (inputs.cnvkit, " ".join(files), localBed, outBed), error_msg)
+		run_command(inputs, f"{inputs.cnvkit} autobin {' '.join(files)} -t {localBed} -g {outBed} -m wgs", error_msg)
 
 	for s in targets_data_processed:
-		run_command(inputs, "%s coverage %s %s -o %s -p %d" % (inputs.cnvkit, s._bamCalib, targets, targetCoverage, inputs.threads), error_msg)
-		run_command(inputs, "%s coverage %s %s -o %s -p %d" % (inputs.cnvkit, s._bamCalib, antitargets, antitargetCoverage, inputs.threads), error_msg)
-		run_command(inputs, "%s reference -o %s -f %s -t %s -a %s" % (inputs.cnvkit, outRef, inputs.reference, targets, antitargets), error_msg)
-		run_command(inputs, "%s fix %s %s %s -o %s" % (inputs.cnvkit, targetCoverage, antitargetCoverage, outRef, cnr), error_msg)
-		run_command(inputs, "%s segment %s -o %s -m cbs --rscript-path %s --smooth-cbs --drop-low-coverage --drop-outliers 10" % (inputs.cnvkit, cnr, cns, inputs.rscript), error_msg)
+		run_command(inputs, f"{inputs.cnvkit} coverage {s._bamCalib} {targets} -o {targetCoverage} -p {inputs.threads}", error_msg)
+		run_command(inputs, f"{inputs.cnvkit} coverage {s._bamCalib} {antitargets} -o {antitargetCoverage} -p {inputs.threads}", error_msg)
+		run_command(inputs, f"{inputs.cnvkit} reference -o {outRef} -f {inputs.reference} -t {targets} -a {antitargets}", error_msg)
+		run_command(inputs, f"{inputs.cnvkit} fix {targetCoverage} {antitargetCoverage} {outRef} -o {cnr}", error_msg)
+		run_command(inputs, f"{inputs.cnvkit} segment {cnr} -o {cns} -m cbs --rscript-path {inputs.rscript} --smooth-cbs --drop-low-coverage --drop-outliers 10", error_msg)
 
 	print_log(inputs, "\n<---> Done. <--->\n")
 	return 0
