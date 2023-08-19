@@ -224,6 +224,10 @@ def parse_config(config_file, inputs):
 					inputs.rscript = val
 					if inputs.verbose: print_log(inputs, "[INFO] Parsed rscript resource")
 					config_count = config_count + 1
+				elif key == 'SALMON':
+					inputs.salmon = val
+					if inputs.verbose: print_log(inputs, "[INFO] Parsed salmon resource")
+					config_count = config_count + 1
 				elif key == 'STRELKABIN':
 					inputs.strelkabin = val
 					if inputs.verbose: print_log(inputs, "[INFO] Parsed strelkabin resource")
@@ -543,22 +547,10 @@ if __name__ == '__main__':
 	elif inputs.workflow == "RNASEQ":
 		
 		if inputs.verbose: print_log(inputs, "[INFO] RNASEQ Analysis")
-
 		try:
-			ngs_rna.ngs_rna_index(inputs)
+			ngs_rna.ngs_quantification(inputs)
 		except ngs_classes.ngsExcept as err:
 			print_log(inputs, err.msg)
 			sys.exit(1)
-		finally:
-			ngs_clean(inputs)
-			
-		try:
-			ngs_rna.ngs_rna_align(inputs,targets_data)
-		except ngs_classes.ngsExcept as err:
-			print_log(inputs, err.msg)
-			sys.exit(1)
-		finally:
-			ngs_clean(inputs)
-			
 
 	sys.exit(0)
