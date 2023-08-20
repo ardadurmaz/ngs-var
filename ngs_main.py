@@ -278,7 +278,7 @@ def get_inputs(inputs):
 	
 	parser.add_argument('--trimmer',default='cutadapt',required=False,help='Name of the trimmer <Cutadapt|Fastp|Skewer|AfterQC>')
 	parser.add_argument('--aligner',default='bwa',help='Name of the aligner <BWA|STAR>')
-	parser.add_argument('--caller',default='HaplotypeCaller',help='Name of the caller <HaplotypeCaller|Strelka2|MuTect2>')
+	parser.add_argument('--tool',default='HaplotypeCaller',help='Name of the caller <HaplotypeCaller|Strelka2|MuTect2>')
 	parser.add_argument('--workflow',default='GermlineSNVIndel',help='Type of analysis to run <GermlineSNVIndel|SomaticSNVIndel|RNASeq>')
 	parser.add_argument('--in_file',default='None',required=True,help='Targets file containing sample ids and associated fastq files')
 	
