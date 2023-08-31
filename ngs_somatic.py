@@ -48,11 +48,11 @@ def ngs_strelka_somatic(inputs, targets_data_processed):
 		if(len(glob.glob(os.path.abspath(s._bamCalibTumor + '.bai'))) > 0):
 			print_log(inputs, "[INFO] Indices found, skipping.")
 		else:
-			run_command(inputs, f'{inputs.sambaba} index -t {inputs.threads} {s._bamCalibTumor}')
+			run_command(inputs, f'{inputs.sambamba} index -t {inputs.threads} {s._bamCalibTumor}')
 		if(len(glob.glob(os.path.abspath(s._bamCalibNormal + '.bai'))) > 0):
 			print_log(inputs, "[INFO] Indices found, skipping.")
 		else:
-			run_command(inputs, f'{inputs.sambaba} index -t {inputs.threads} {s._bamCalibNormal}')
+			run_command(inputs, f'{inputs.sambamba} index -t {inputs.threads} {s._bamCalibNormal}')
 			
 	if(os.path.exists(runDir)):
 		if inputs.verbose: print_log(inputs, "[INFO] Strelka run directory exists")
@@ -151,11 +151,11 @@ def ngs_cnvkit_somatic(inputs, targets_data_processed):
 		if(len(glob.glob(os.path.abspath(s._bamCalibTumor + '.bai'))) > 0):
 			print_log(inputs, "[INFO] Indices found, skipping.")
 		else:
-			run_command(inputs, f'{inputs.sambaba} index -t {inputs.threads} {s._bamCalibTumor}')
+			run_command(inputs, f'{inputs.sambamba} index -t {inputs.threads} {s._bamCalibTumor}')
 		if(len(glob.glob(os.path.abspath(s._bamCalibNormal + '.bai'))) > 0):
 			print_log(inputs, "[INFO] Indices found, skipping.")
 		else:
-			run_command(inputs, f'{inputs.sambaba} index -t {inputs.threads} {s._bamCalibNormal}')
+			run_command(inputs, f'{inputs.sambamba} index -t {inputs.threads} {s._bamCalibNormal}')
 	
 	outBed = runDir + 'access.bed'
 	bedPathParts = inputs.bed.rsplit('/', 1)
