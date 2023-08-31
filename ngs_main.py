@@ -96,12 +96,28 @@ def read_targets(inputs):
 			print_log(inputs, "\n    *** Run Info ***")
 			for arg, val in vars(r).items():
 				if val:
-					print_log(inputs, f"  [{arg} --> {val}]")
-		print_log(inputs, "\n\n")    
+					print_log(inputs, f"  [{arg} --> {val}]")   
+		print_log(inputs, "\n") 
 
+	targets_count = 0
+	if str.upper(inputs.workflow) == "GERMLINESNVINDEL":
+		for entry in in_data:
+			if hasattr(entry, 'type'):
+				if str.lower(entry.type) == 'normal':
+					targets_count += 1
+			else:
+				targets_count += 1
+	else:
+		targets_count = len(in_data)
+
+	if targets_count == 0:
+		print_log(inputs, "[INFO] 0 targets found... quitting")
+		sys.exit(1)
+	else:
+		print_log(inputs, f"[INFO] {targets_count} targets found")
+	
+	print_log(inputs, "\n") 
 	return in_data
-
-
 
 def check_inputs(inputs):
     if inputs.verbose: print_log(inputs, "[INFO] Checking provided arguments")
