@@ -25,7 +25,7 @@ def ngs_haplotypecaller(inputs, targets_data_processed):
 		if(len(glob.glob(os.path.abspath(s._bamCalib + '.bai'))) > 0):
 			print_log(inputs, "[INFO] Indices found, skipping.")
 		else:
-			run_command(inputs, f"{inputs.sambaba} index -t {inputs.threads} {s._bamCalib}")
+			run_command(inputs, f"{inputs.sambamba} index -t {inputs.threads} {s._bamCalib}")
 
 	for s in targets_data_processed:
 		outFile = runDir + f'/{s._id}.raw.snps.indels.vcf'
@@ -125,7 +125,7 @@ def ngs_strelka_germline(inputs, targets_data_processed):
 		if(len(glob.glob(os.path.abspath(s._bamCalib + '.bai'))) > 0):
 			print_log(inputs, "[INFO] Indices found, skipping.")
 		else:
-			run_command(inputs, f'{inputs.sambaba} index -t {inputs.threads} {s._bamCalib}')
+			run_command(inputs, f'{inputs.sambamba} index -t {inputs.threads} {s._bamCalib}')
 	
 	files = []
 	for s in targets_data_processed:
@@ -175,7 +175,7 @@ def ngs_cnvkit_germline(inputs, targets_data_processed):
 		if(len(glob.glob(os.path.abspath(s._bamCalib + '.bai'))) > 0):
 			print_log(inputs, "[INFO] Indices found, skipping.")
 		else:
-			run_command(inputs, f'{inputs.sambaba} index -t {inputs.threads} {s._bamCalib}')
+			run_command(inputs, f'{inputs.sambamba} index -t {inputs.threads} {s._bamCalib}')
 	
 	files = []
 	for s in targets_data_processed:
@@ -187,11 +187,7 @@ def ngs_cnvkit_germline(inputs, targets_data_processed):
 	localBed = dir + '/' + 'local.' + fileName
 	targets = localBed.split('.bed')[0] + '.target.bed'
 	antitargets = localBed.split('.bed')[0] + '.antitarget.bed'
-	targetCoverage = runDir + s._id + ".Normal" + ".targetcoverage.cnn"
-	antitargetCoverage = runDir + s._id + ".Normal" + ".antitargetcoverage.cnn"
 	outRef = runDir + 'flatReference.cnn'
-	cnr = runDir + s._id + ".Normal" + ".cnr"
-	cns = runDir + s._id + ".Normal" + ".cns"
 	error_msg = "[ERROR:CNVKIT] Failed to run CNVkit configuration"
 
 	run_command(inputs, f"{inputs.cnvkit} target {inputs.bed} --split -o {localBed}", error_msg)
@@ -203,6 +199,10 @@ def ngs_cnvkit_germline(inputs, targets_data_processed):
 		run_command(inputs, f"{inputs.cnvkit} autobin {' '.join(files)} -t {localBed} -g {outBed} -m wgs", error_msg)
 
 	for s in targets_data_processed:
+		targetCoverage = runDir + s._id + ".Normal" + ".targetcoverage.cnn"
+		antitargetCoverage = runDir + s._id + ".Normal" + ".antitargetcoverage.cnn"
+		cnr = runDir + s._id + ".Normal" + ".cnr"
+		cns = runDir + s._id + ".Normal" + ".cns"
 		run_command(inputs, f"{inputs.cnvkit} coverage {s._bamCalib} {targets} -o {targetCoverage} -p {inputs.threads}", error_msg)
 		run_command(inputs, f"{inputs.cnvkit} coverage {s._bamCalib} {antitargets} -o {antitargetCoverage} -p {inputs.threads}", error_msg)
 		run_command(inputs, f"{inputs.cnvkit} reference -o {outRef} -f {inputs.reference} -t {targets} -a {antitargets}", error_msg)
