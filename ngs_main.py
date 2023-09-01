@@ -111,10 +111,10 @@ def read_targets(inputs):
 		targets_count = len(in_data)
 
 	if targets_count == 0:
-		print_log(inputs, "[INFO] 0 targets found... quitting")
+		print_log(inputs, "[INFO] Read 0 targets... exiting")
 		sys.exit(1)
 	else:
-		print_log(inputs, f"[INFO] {targets_count} targets found")
+		print_log(inputs, f"[INFO] Read {targets_count} targets")
 	
 	print_log(inputs, "\n") 
 	return in_data
