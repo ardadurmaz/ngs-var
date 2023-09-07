@@ -27,9 +27,9 @@ def ngs_mutect(inputs, targets_data_processed):
 			if inputs.verbose: print_log(inputs, f"[INFO] MuTect2 output file found for sample {s._id}, skipping.")
 		else:
 			if inputs.bed:
-				run_command(inputs, f"java -jar {inputs.gatk }-T MuTect2 -R {inputs.reference} -nct {inputs.threads} -I:tumor {s._bamCalibTumor} -I:normal {s._bamCalibNormal} -L {inputs.bed} -o {outFile}", f"[ERROR] Failed to run MuTect2 on files {s._bamCalibTumor} {s._bamCalibNormal}")
+				run_command(inputs, f"{inputs.gatk} -T MuTect2 -R {inputs.reference} -nct {inputs.threads} -I:tumor {s._bamCalibTumor} -I:normal {s._bamCalibNormal} -L {inputs.bed} -o {outFile}", f"[ERROR] Failed to run MuTect2 on files {s._bamCalibTumor} {s._bamCalibNormal}")
 			else:
-				run_command(inputs, f"java -jar {inputs.gatk} -T MuTect2 -R {inputs.reference} -nct {inputs.threads} -I:tumor {s._bamCalibTumor} -I:normal {s._bamCalibNormal} -o {outFile}", f"[ERROR] Failed to run MuTect2 on files {s._bamCalibTumor} {s._bamCalibNormal}")
+				run_command(inputs, f"{inputs.gatk} -T MuTect2 -R {inputs.reference} -nct {inputs.threads} -I:tumor {s._bamCalibTumor} -I:normal {s._bamCalibNormal} -o {outFile}", f"[ERROR] Failed to run MuTect2 on files {s._bamCalibTumor} {s._bamCalibNormal}")
 				
 	print_log(inputs, "\n<---> Done <--->\n")
 	return 0
