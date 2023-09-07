@@ -21,6 +21,8 @@ A comprehensive Next-Generation Sequencing (NGS) pipeline for DNA and RNA analys
 | **Callers**   | [GATK](https://github.com/broadinstitute/gatk)<br>[Strelka](https://github.com/Illumina/strelka)<br>[Manta](https://github.com/Illumina/manta) | [Salmon](https://github.com/COMBINE-lab/salmon) |
 | **Utilities** | [Samtools](https://github.com/samtools/samtools)<br>[Sambamba](https://github.com/biod/sambamba)<br>[CNVkit](https://github.com/etal/cnvkit)<br>[Rscript](https://cran.r-project.org/bin/windows/base/) | N/A |
 
+## Example Command
+
 ## FAQs
 
 ### General
