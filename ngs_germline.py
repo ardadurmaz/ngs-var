@@ -36,7 +36,7 @@ def ngs_haplotypecaller(inputs, targets_data_processed):
 			if inputs.verbose: print_log(inputs, f"[INFO] HaplotypeCaller raw file found for sample {s._id}, skipping.")
 			return 0
 		else:		
-			run_command(inputs, f"java -Xmx8g -jar {inputs.gatk} HaplotypeCaller --native-pair-hmm-threads {inputs.threads} -ERC GVCF -R {inputs.reference} -I {inFile} "\
+			run_command(inputs, f"{inputs.gatk} HaplotypeCaller --native-pair-hmm-threads {inputs.threads} -ERC GVCF -R {inputs.reference} -I {inFile} "\
 				f"--sample-name {sampleName} "\
 				f"-stand-call-conf 10 -O {outFile} "\
 				"-A BaseQualityRankSumTest -A Coverage -A DepthPerAlleleBySample "\
@@ -57,7 +57,7 @@ def ngs_haplotypecaller_combine(inputs, targets_data_processed):
 		if inputs.verbose: print_log(inputs, "[INFO] Skipping")
 		return 0
 	else:
-		run_command(inputs, f"java -Xmx8g -jar {inputs.gatk} CombineGVCFs -R {inputs.reference} --variant {inFile} -O {outFile}", "[ERROR:CombineGVCFs] Failed to combine GVCFs")
+		run_command(inputs, f"{inputs.gatk} CombineGVCFs -R {inputs.reference} --variant {inFile} -O {outFile}", "[ERROR:CombineGVCFs] Failed to combine GVCFs")
 
 	print_log(inputs, "\n<---> Done <--->\n")
 	return 0
@@ -73,7 +73,7 @@ def ngs_haplotypecaller_genotype(inputs):
         if inputs.verbose: print_log(inputs, "[INFO] Skipping")
         return 0
     else:
-        run_command(inputs, f"java -Xmx8g -jar {inputs.gatk} GenotypeGVCFs -R {inputs.reference} -V {inFile} -O {outFile} -A BaseQualityRankSumTest -A MappingQualityRankSumTest -A FisherStrand -A QualByDepth -A ReadPosRankSumTest -A RMSMappingQuality -A StrandOddsRatio -A DepthPerAlleleBySample -A Coverage -ip 100", "[ERROR:GenotypeGVCFs] Failed to perform joint genotyping")
+        run_command(inputs, f"{inputs.gatk} GenotypeGVCFs -R {inputs.reference} -V {inFile} -O {outFile} -A BaseQualityRankSumTest -A MappingQualityRankSumTest -A FisherStrand -A QualByDepth -A ReadPosRankSumTest -A RMSMappingQuality -A StrandOddsRatio -A DepthPerAlleleBySample -A Coverage -ip 100", "[ERROR:GenotypeGVCFs] Failed to perform joint genotyping")
     print_log(inputs, "\n<---> Done <--->\n")
     return 0
 
@@ -90,13 +90,13 @@ def ngs_haplotypecaller_filter(inputs):
     mainOutFile = runDir + '/filt.gatk.calls.vcf'
     
     commands = [
-        f"java -Xmx8g -jar {inputs.gatk} LeftAlignAndTrimVariants -R {inputs.reference} -V {inFile} -O {normFile} --split-multi-allelics",
-        f"java -Xmx8g -jar {inputs.gatk} SelectVariants -R {inputs.reference} -V {normFile} -O {snpFile} --exclude-non-variants --select-type-to-include \"SNP\"",
-        f"java -Xmx8g -jar {inputs.gatk} SelectVariants -R {inputs.reference} -V {normFile} -O {indelFile} --exclude-non-variants --select-type-to-include \"INDEL\"",
-        f"java -Xmx8g -jar {inputs.gatk} VariantFiltration -R {inputs.reference} -V {snpFile} -O {filtSnpFile} --filter-expression \"QD < 2.0\" --filter-name \"LowQD\" --filter-expression \"QUAL < 30.0\" --filter-name \"QUAL30\" --filter-expression 'FS > 60.0 && SOR > 9.0' --filter-name 'HighSBSNP' --filter-expression 'MQ < 40.0' --filter-name \"LowMQSNP\" --filter-expression 'ReadPosRankSum < -8.0' --filter-name \"LowRPRSSNP\" --genotype-filter-expression \"GQ < 30.0\" --genotype-filter-name \"GQ\" --genotype-filter-expression \"DP < 10.0\" --genotype-filter-name \"LowDPGT\"",
-        f"java -Xmx8g -jar {inputs.gatk} VariantFiltration -R {inputs.reference} -V {indelFile} -O {filtIndelFile} --filter-expression \"QD < 2.0\" --filter-name \"LowQD\" --filter-expression \"QUAL < 30.0\" --filter-name \"QUAL30\" --filter-expression 'FS > 200.0 && SOR > 9.0' --filter-name \"HighSBINDEL\" --filter-expression 'ReadPosRankSum < -20.0' --filter-name \"LowRPRSINDEL\" --genotype-filter-expression \"GQ < 30.0\" --genotype-filter-name \"GQ\" --genotype-filter-expression \"DP < 10.0\" --genotype-filter-name \"LowDPGT\"",
-        f"java -Xmx8g -jar {inputs.gatk} MergeVcfs -I {filtSnpFile} -I {filtIndelFile} -O {mergedFile}",
-        f"java -Xmx8g -jar {inputs.gatk} SelectVariants -R {inputs.reference} -V {mergedFile} -O {mainOutFile} --exclude-non-variants --exclude-filtered --select-type-to-include \"SNP\" --select-type-to-include \"INDEL\""
+        f"{inputs.gatk} LeftAlignAndTrimVariants -R {inputs.reference} -V {inFile} -O {normFile} --split-multi-allelics",
+        f"{inputs.gatk} SelectVariants -R {inputs.reference} -V {normFile} -O {snpFile} --exclude-non-variants --select-type-to-include \"SNP\"",
+        f"{inputs.gatk} SelectVariants -R {inputs.reference} -V {normFile} -O {indelFile} --exclude-non-variants --select-type-to-include \"INDEL\"",
+        f"{inputs.gatk} VariantFiltration -R {inputs.reference} -V {snpFile} -O {filtSnpFile} --filter-expression \"QD < 2.0\" --filter-name \"LowQD\" --filter-expression \"QUAL < 30.0\" --filter-name \"QUAL30\" --filter-expression 'FS > 60.0 && SOR > 9.0' --filter-name 'HighSBSNP' --filter-expression 'MQ < 40.0' --filter-name \"LowMQSNP\" --filter-expression 'ReadPosRankSum < -8.0' --filter-name \"LowRPRSSNP\" --genotype-filter-expression \"GQ < 30.0\" --genotype-filter-name \"GQ\" --genotype-filter-expression \"DP < 10.0\" --genotype-filter-name \"LowDPGT\"",
+        f"{inputs.gatk} VariantFiltration -R {inputs.reference} -V {indelFile} -O {filtIndelFile} --filter-expression \"QD < 2.0\" --filter-name \"LowQD\" --filter-expression \"QUAL < 30.0\" --filter-name \"QUAL30\" --filter-expression 'FS > 200.0 && SOR > 9.0' --filter-name \"HighSBINDEL\" --filter-expression 'ReadPosRankSum < -20.0' --filter-name \"LowRPRSINDEL\" --genotype-filter-expression \"GQ < 30.0\" --genotype-filter-name \"GQ\" --genotype-filter-expression \"DP < 10.0\" --genotype-filter-name \"LowDPGT\"",
+        f"{inputs.gatk} MergeVcfs -I {filtSnpFile} -I {filtIndelFile} -O {mergedFile}",
+        f"{inputs.gatk} SelectVariants -R {inputs.reference} -V {mergedFile} -O {mainOutFile} --exclude-non-variants --exclude-filtered --select-type-to-include \"SNP\" --select-type-to-include \"INDEL\""
     ]
 
     for command in commands:
