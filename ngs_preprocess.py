@@ -209,10 +209,10 @@ def bqsr(inputs, targets_data_processed):
 			else:
 				recalib_commands = []
 				if inputs.bed:
-					recalib_commands.append(f"java -jar {inputs.gatk} -T BaseRecalibrator -nct {inputs.threads} -R {inputs.reference} -I {s._bamTumor} -knownSites {' -knownSites '.join(inputs.knownsites)} -o {tumorRecalibTable} -L {inputs.bed}")
+					recalib_commands.append(f"{inputs.gatk} -T BaseRecalibrator -nct {inputs.threads} -R {inputs.reference} -I {s._bamTumor} -knownSites {' -knownSites '.join(inputs.knownsites)} -o {tumorRecalibTable} -L {inputs.bed}")
 				else:
-					recalib_commands.append(f"java -jar {inputs.gatk} -T BaseRecalibrator -nct {inputs.threads} -R {inputs.reference} -I {s._bamTumor} -knownSites {' -knownSites '.join(inputs.knownsites)} -o {tumorRecalibTable}")
-				recalib_commands.append(f"java -jar {inputs.gatk} -T BaseRecalibrator -nct {inputs.threads} -R {inputs.reference} -I {s._bamNormal} -knownSites {' -knownSites '.join(inputs.knownsites)} -o {normalRecalibTable}")
+					recalib_commands.append(f"{inputs.gatk} -T BaseRecalibrator -nct {inputs.threads} -R {inputs.reference} -I {s._bamTumor} -knownSites {' -knownSites '.join(inputs.knownsites)} -o {tumorRecalibTable}")
+				recalib_commands.append(f"{inputs.gatk} -T BaseRecalibrator -nct {inputs.threads} -R {inputs.reference} -I {s._bamNormal} -knownSites {' -knownSites '.join(inputs.knownsites)} -o {normalRecalibTable}")
 				
 				for cmd in recalib_commands:
 					run_command(inputs, cmd)
@@ -226,9 +226,9 @@ def bqsr(inputs, targets_data_processed):
 			else:
 				recalib_command = ""
 				if inputs.bed:
-					recalib_command = f"java -jar {inputs.gatk} -T BaseRecalibrator -nct {inputs.threads} -R {inputs.reference} -I {s._bam} -knownSites {' -knownSites '.join(inputs.knownsites)} -o {RecalibTable} -L {inputs.bed}"
+					recalib_command = f"{inputs.gatk} -T BaseRecalibrator -nct {inputs.threads} -R {inputs.reference} -I {s._bam} -knownSites {' -knownSites '.join(inputs.knownsites)} -o {RecalibTable} -L {inputs.bed}"
 				else:
-					recalib_command = f"java -jar {inputs.gatk} -T BaseRecalibrator -nct {inputs.threads} -R {inputs.reference} -I {s._bam} -knownSites {' -knownSites '.join(inputs.knownsites)} -o {RecalibTable}"
+					recalib_command = f"{inputs.gatk} -T BaseRecalibrator -nct {inputs.threads} -R {inputs.reference} -I {s._bam} -knownSites {' -knownSites '.join(inputs.knownsites)} -o {RecalibTable}"
 				
 				run_command(inputs, recalib_command)
 				
@@ -244,14 +244,14 @@ def bqsr(inputs, targets_data_processed):
 				print_log(inputs, "[INFO] BQSR adjusted files found, skipping.")
 			else:
 				if inputs.bed:
-					run_command(inputs, f"java -jar {inputs.gatk} -T PrintReads -nct {inputs.threads} -R {inputs.reference} -I {s._bamTumor} -BQSR {s._recalibTableTumor} -o {tumorCalibBam} -L {inputs.bed}")
+					run_command(inputs, f"{inputs.gatk} -T PrintReads -nct {inputs.threads} -R {inputs.reference} -I {s._bamTumor} -BQSR {s._recalibTableTumor} -o {tumorCalibBam} -L {inputs.bed}")
 				else:
-					run_command(inputs, f"java -jar {inputs.gatk} -T PrintReads -nct {inputs.threads} -R {inputs.reference} -I {s._bamTumor} -BQSR {s._recalibTableTumor} -o {tumorCalibBam}")
+					run_command(inputs, f"{inputs.gatk} -T PrintReads -nct {inputs.threads} -R {inputs.reference} -I {s._bamTumor} -BQSR {s._recalibTableTumor} -o {tumorCalibBam}")
 				
 				if inputs.bed:
-					run_command(inputs, f"java -jar {inputs.gatk} -T PrintReads -nct {inputs.threads} -R {inputs.reference} -I {s._bamNormal} -BQSR {s._recalibTableNormal} -o {normalCalibBam} -L {inputs.bed}")
+					run_command(inputs, f"{inputs.gatk} -T PrintReads -nct {inputs.threads} -R {inputs.reference} -I {s._bamNormal} -BQSR {s._recalibTableNormal} -o {normalCalibBam} -L {inputs.bed}")
 				else:
-					run_command(inputs, f"java -jar {inputs.gatk} -T PrintReads -nct {inputs.threads} -R {inputs.reference} -I {s._bamNormal} -BQSR {s._recalibTableNormal} -o {normalCalibBam}")
+					run_command(inputs, f"{inputs.gatk} -T PrintReads -nct {inputs.threads} -R {inputs.reference} -I {s._bamNormal} -BQSR {s._recalibTableNormal} -o {normalCalibBam}")
 			
 			s._bamCalibTumor = tumorCalibBam
 			s._bamCalibNormal = normalCalibBam
@@ -262,9 +262,9 @@ def bqsr(inputs, targets_data_processed):
 				print_log(inputs, "[INFO] BQSR adjusted files found, skipping.")
 			else:
 				if inputs.bed:
-					run_command(inputs, f"java -jar {inputs.gatk} -T PrintReads -nct {inputs.threads} -R {inputs.reference} -I {s._bam} -BQSR {s._recalibTable} -o {CalibBam} -L {inputs.bed}")
+					run_command(inputs, f"{inputs.gatk} -T PrintReads -nct {inputs.threads} -R {inputs.reference} -I {s._bam} -BQSR {s._recalibTable} -o {CalibBam} -L {inputs.bed}")
 				else:
-					run_command(inputs, f"java -jar {inputs.gatk} -T PrintReads -nct {inputs.threads} -R {inputs.reference} -I {s._bam} -BQSR {s._recalibTable} -o {CalibBam}")
+					run_command(inputs, f"{inputs.gatk} -T PrintReads -nct {inputs.threads} -R {inputs.reference} -I {s._bam} -BQSR {s._recalibTable} -o {CalibBam}")
 			
 			s._bamCalib = CalibBam
 
