@@ -37,10 +37,10 @@ python3 -u ngs_main.py \
   --upload \
   --exome \
   --bqsr \
-  --trimmer fastp \
-  --aligner bwa \
-  --tool haplotypecaller \
-  --workflow GERMLINESNVINDEL \
+  --trimmer Fastp \
+  --aligner BWA \
+  --tool HaplotypeCaller \
+  --workflow GermlineSNVIndel \
   --bed /path/to/hg38.bed \
   --cbed /path/to/capture.bed
 ```
