@@ -23,6 +23,28 @@ A comprehensive Next-Generation Sequencing (NGS) pipeline for DNA and RNA analys
 
 ## Example Command
 
+```bash
+python3 -u ngs_main.py \
+  --in_file /path/to/sample_run.tsv \
+  --dir /path/to/ngs_WD2 \
+  --config /path/to/config_file.json \
+  --threads 16 \
+  --title "My_NGS_Run" \
+  --log /path/to/log.txt \
+  --verbose \
+  --dry \
+  --clear \
+  --upload \
+  --exome \
+  --bqsr \
+  --trimmer fastp \
+  --aligner bwa \
+  --tool haplotypecaller \
+  --workflow GERMLINESNVINDEL \
+  --bed /path/to/hg38.bed \
+  --cbed /path/to/capture.bed
+```
+    
 ## FAQs
 
 ### General
