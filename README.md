@@ -26,7 +26,7 @@ A comprehensive Next-Generation Sequencing (NGS) pipeline for DNA and RNA analys
 ```bash
 python3 -u ngs_main.py \
   --in_file /path/to/sample_run.tsv \
-  --dir /path/to/ngs_WD2 \
+  --dir /path/to/ngs_WD \
   --config /path/to/config_file.json \
   --threads 16 \
   --title "My_NGS_Run" \
