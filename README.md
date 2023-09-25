@@ -29,7 +29,7 @@ python3 -u ngs_main.py \
   --dir /path/to/ngs_WD \
   --config /path/to/config_file.json \
   --threads 16 \
-  --title "My_NGS_Run" \
+  --title "Run_Title" \
   --log /path/to/log.txt \
   --verbose \
   --dry \
