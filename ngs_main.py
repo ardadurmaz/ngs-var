@@ -28,7 +28,7 @@ def read_targets(inputs):
 		_header = True
 		_mixed = False
 		for l in fh:
-			if not(re.match('^#', l) or re.match('^\s+$', l)):
+			if not(re.match('^#', l) or re.match('^\\s+$', l)):
 				local = l.rstrip("\n").split('\t')
 				if _header:
 					for i in range(len(local)):
@@ -52,7 +52,7 @@ def read_targets(inputs):
 					_header = False
 				else:
 					joined = "\t".join(local)
-					if len(list([x for x in local if re.search('^[^\s]+$', x)])) != len(indx):
+					if len(list([x for x in local if re.search('^[^\\s]+$', x)])) != len(indx):
 						print_log(inputs, f'[WARNING:FORMAT] {joined}')
 					else:
 						if(str.upper(inputs.workflow) == "GERMLINESNVINDEL"):
@@ -191,7 +191,7 @@ def parse_config(config_file, inputs):
 	try:
 		for l in fh:
 			ss = l.rstrip("\n")
-			match = re.search('^(\w+)\:\t(\S+)$', ss)
+			match = re.search('^(\\w+)\\:\t(\\S+)$', ss)
 			if(match):
 				key = str.upper(match.group(1))
 				val = match.group(2)
@@ -333,8 +333,8 @@ def get_inputs(inputs):
 		raise ngs_classes.ngsExcept("[ERROR] Failed to parse inputs")
 
 	if inputs.verbose:
-		print_log(inputs, "\n")
-		print_log(inputs, "\/" * 40)
+		print_log(inputs, "\\n")
+		print_log(inputs, "\\/" * 40)
 
 		for key, val in vars(inputs).items():
 			if(key == 'knownsites'):
@@ -343,7 +343,7 @@ def get_inputs(inputs):
 			else:
 				print_log(inputs, f"\\/ {key}: {val}")
 
-		print_log(inputs, "\/" * 40)
+		print_log(inputs, "\\/" * 40)
 		print_log(inputs, "\n")
 
 	return inputs
