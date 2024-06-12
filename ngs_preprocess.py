@@ -6,23 +6,31 @@ import ngs_classes
 from ngs_functions import print_log, run_command
 ######################################################
 
-
 def ngs_index(inputs):
-	if re.search("bwa", str.lower(inputs.aligner)):
-		if(len(glob.glob(os.path.abspath(inputs.reference + '.bwt'))) > 0):
-			print_log(inputs, "[INFO] Indices found, skipping.")
-		else:
-			run_command(inputs, f"{inputs.bwa} index {inputs.reference}", "[ERROR:BWA] Failed to create fasta index")
-	elif re.search("star", str.lower(inputs.aligner)):
-		print_log(inputs, "\n<---> RNA Indexing <--->\n")
-		runDir = os.path.abspath(inputs.dir + '/RNA_SEQ/')
-		error_msg = "[ERROR] Failed to perform RNA indexing."
-		if(os.path.exists(runDir + '/Genome')):
-			print_log(inputs, "[INFO] Indices found, skipping.")
-			return 0
-		else:
-			run_command(inputs, f"{inputs.star} --runThreadN {inputs.threads} --runMode genomeGenerate --genomeDir {runDir} --genomeFastaFiles {inputs.reference} --sjdbGTFfile {inputs.annotation}", error_msg)
-	return True
+    if re.search("bwa", str.lower(inputs.aligner)):      
+        if len(glob.glob(os.path.abspath(inputs.reference + '.bwt'))) > 0:
+            print_log(inputs, "[INFO] BWA indices found, skipping.")
+        else:
+            run_command(inputs, f"{inputs.bwa} index {inputs.reference}", "[ERROR:BWA] Failed to create fasta index")
+        
+        if len(glob.glob(os.path.abspath(inputs.reference + '.fai'))) > 0:
+            print_log(inputs, "[INFO] FAI index found, skipping.")
+        else:
+            run_command(inputs, f"{inputs.samtools} faidx {inputs.reference}", "[ERROR:SAMTOOLS] Failed to create fasta index")
+    
+    elif re.search("star", str.lower(inputs.aligner)):
+        print_log(inputs, "\n<---> RNA Indexing <--->\n")
+        runDir = os.path.abspath(inputs.dir + '/RNA_SEQ/')
+        error_msg = "[ERROR] Failed to perform RNA indexing."
+        
+        if os.path.exists(runDir + '/Genome'):
+            print_log(inputs, "[INFO] Indices found, skipping.")
+            return 0
+        else:
+            run_command(inputs, f"{inputs.star} --runThreadN {inputs.threads} --runMode genomeGenerate --genomeDir {runDir} --genomeFastaFiles {inputs.reference} --sjdbGTFfile {inputs.annotation}", error_msg)
+    
+    return True
+
 
 def ngs_trim(inputs, targets_data):
 	if re.search('fastp', str.lower(inputs.trimmer)):
@@ -82,7 +90,7 @@ def ngs_align(inputs, targets_data):
 			if(os.path.exists(aligned_Name)):
 				print_log(inputs, "[INFO] Aligned reads found, skipping")
 			else:
-				run_command(inputs, f"/bin/bash -c '{inputs.bwa} mem -t {inputs.threads} -M -R \"@RG\\tID:{r._id}_{r._lib}_{r._lane}\\tSM:{r._id}\\tPL:{str.upper(r._plat)}\\tLB:{r._lib}\" {inputs.reference} <(gunzip -c {r._trimmedR1}) <(gunzip -c {r._trimmedR2}) | samtools sort -@{inputs.threads} -l9 -o {aligned_Name}'", f"[ERROR:BWA] Failed to align reads {r._trimmedR1} {r._trimmedR2}")
+				run_command(inputs, f"/bin/bash -c '{inputs.bwa} mem -t {inputs.threads} -M -R \"@RG\\tID:{r._id}_{r._lib}_{r._lane}\\tSM:{r._id}\\tPL:{str.upper(r._plat)}\\tLB:{r._lib}\" {inputs.reference} <(gunzip -c {r._trimmedR1}) <(gunzip -c {r._trimmedR2}) | {inputs.samtools} sort -@{inputs.threads} -l9 -o {aligned_Name}'", f"[ERROR:BWA] Failed to align reads {r._trimmedR1} {r._trimmedR2}")
 			r._aligned = aligned_Name
 	elif re.search("star", str.lower(inputs.aligner)):
 		print_log(inputs, "\n<---> RNA Alignment <--->\n") 
