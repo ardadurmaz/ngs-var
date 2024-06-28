@@ -1,6 +1,6 @@
 # ngs-var
 
-A comprehensive Next-Generation Sequencing (NGS) pipeline for DNA and RNA analysis. It integrates trimming, alignment, variant calling, and post-processing with a customizable workflow and toolset.
+A comprehensive Next-Generation Sequencing (NGS) pipeline for DNA and RNA analysis, integrating trimming, alignment, variant calling, and post-processing with a customizable workflow and toolset.
 
 ## Installation 
 
@@ -21,7 +21,7 @@ A comprehensive Next-Generation Sequencing (NGS) pipeline for DNA and RNA analys
 | **Callers**   | [GATK](https://github.com/broadinstitute/gatk)<br>[Strelka](https://github.com/Illumina/strelka)<br>[Manta](https://github.com/Illumina/manta) | [Salmon](https://github.com/COMBINE-lab/salmon) |
 | **Utilities** | [Samtools](https://github.com/samtools/samtools)<br>[Sambamba](https://github.com/biod/sambamba)<br>[CNVkit](https://github.com/etal/cnvkit)<br>[Rscript](https://cran.r-project.org/bin/windows/base/) | N/A |
 
-## Example Command
+## Usage
 
 ```bash
 python3 -u ngs_main.py \
@@ -44,25 +44,3 @@ python3 -u ngs_main.py \
   --bed /path/to/hg38.bed \
   --cbed /path/to/capture.bed
 ```
-    
-## FAQs
-
-### General
-
-- **What is 1 + 1?**  
-    - Something around 2.
-
-### Setup
-
-- **What is 1 + 1?**  
-    - Something around 2.
-
-### Usage
-
-- **What is 1 + 1?**  
-    - Something around 2.
-
-### Troubleshooting
-
-- **What is 1 + 1?**  
-    - Something around 2.
