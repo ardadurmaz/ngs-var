@@ -30,20 +30,17 @@ A comprehensive Next-Generation Sequencing (NGS) pipeline for DNA and RNA analys
 - `--threads`: Number of threads to use
 - `--title`: Title of the run
 - `--log`: Name of log file
-
 - `--verbose`: Verbosity
 - `--dry`: Dry-Run
 - `--clear`: Clear workspace
 - `--upload`: Upload intermediate results to S3 storage (aws must be set for non-root user)
 - `--exome`: Whole Exome Data
 - `--bqsr`: Do BQSR
-
-- `--trimmer`: Name of the trimmer <Cutadapt|Fastp|Skewer|AfterQC>
-- `--aligner`: Name of the aligner <BWA|STAR>
-- `--tool`: Name of the caller <HaplotypeCaller|Strelka2|MuTect2>
-- `--workflow`: Type of analysis to run <GermlineSNVIndel|SomaticSNVIndel|RNASeq>
+- `--trimmer`: Name of the trimmer (`Cutadapt`, `Fastp`, `Skewer`, `AfterQC`)
+- `--aligner`: Name of the aligner (`BWA`, `STAR`)
+- `--tool`: Name of the caller (`HaplotypeCaller`, `Strelka2`, `MuTect2`)
+- `--workflow`: Type of analysis to run (`GermlineSNVIndel`, `SomaticSNVIndel`, `RNASeq`)
 - `--in_file`: Targets file containing sample ids and associated fastq files (required)
-
 - `--bed`: Bed file for regions
 - `--cbed`: Bgzip compressed and tabix indexed bed file for regions
 
