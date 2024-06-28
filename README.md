@@ -26,6 +26,7 @@ A comprehensive Next-Generation Sequencing (NGS) pipeline for DNA and RNA analys
 ### Arguments
 
 - `--dir`: Name of working directory
+- `--in_file`: Input file
 - `--config`: Configuration file
 - `--threads`: Number of threads to use
 - `--title`: Title of the run
@@ -47,8 +48,8 @@ A comprehensive Next-Generation Sequencing (NGS) pipeline for DNA and RNA analys
 ### Example
 ```bash
 python3 -u ngs_main.py \
-  --in_file /path/to/sample_run.tsv \
   --dir /path/to/ngs_WD \
+  --in_file /path/to/sample_run.tsv \
   --config /path/to/ngs.config \
   --threads 16 \
   --title "Sample_Run" \
