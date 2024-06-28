@@ -26,7 +26,7 @@ A comprehensive Next-Generation Sequencing (NGS) pipeline for DNA and RNA analys
 ### Arguments
 
 - `--dir`: Name of working directory
-- `--in_file`: Input file
+- `--in_file`: Targets file
 - `--config`: Configuration file
 - `--threads`: Number of threads to use
 - `--title`: Title of the run
@@ -41,7 +41,6 @@ A comprehensive Next-Generation Sequencing (NGS) pipeline for DNA and RNA analys
 - `--aligner`: Name of the aligner (`BWA`, `STAR`)
 - `--tool`: Name of the caller (`HaplotypeCaller`, `Strelka2`, `MuTect2`)
 - `--workflow`: Type of analysis to run (`GermlineSNVIndel`, `SomaticSNVIndel`, `RNASeq`)
-- `--in_file`: Targets file containing sample ids and associated fastq files (required)
 - `--bed`: Bed file for regions
 - `--cbed`: Bgzip compressed and tabix indexed bed file for regions
 
