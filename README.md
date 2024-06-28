@@ -10,7 +10,7 @@ A comprehensive Next-Generation Sequencing (NGS) pipeline for DNA and RNA analys
 
 1. [Download](#components) the appropriate components for each process.
 2. Specify paths in the [configuration file](ngs.config).
-3. Enter sample details in the [run file](sample_run.tsv).
+3. Enter sample details in the [input file](sample_run.tsv).
 
 ## Components
 
