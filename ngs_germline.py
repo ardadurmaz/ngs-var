@@ -193,10 +193,15 @@ def ngs_cnvkit_germline(inputs, targets_data_processed):
 	run_command(inputs, f"{inputs.cnvkit} target {inputs.bed} --split -o {localBed}", error_msg)
 	run_command(inputs, f"{inputs.cnvkit} access {inputs.reference} -o {outBed}", error_msg)
 
+	working_dir = os.getcwd()
+	output_dir = os.path.dirname(localBed)
+
+	os.chdir(output_dir)
 	if inputs.exome:
 		run_command(inputs, f"{inputs.cnvkit} autobin {' '.join(files)} -t {localBed} -g {outBed}", error_msg)
 	else:
 		run_command(inputs, f"{inputs.cnvkit} autobin {' '.join(files)} -t {localBed} -g {outBed} -m wgs", error_msg)
+	os.chdir(working_dir)
 
 	for s in targets_data_processed:
 		targetCoverage = runDir + s._id + ".Normal" + ".targetcoverage.cnn"
